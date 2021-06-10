@@ -1,5 +1,6 @@
+
 <p align="center">
-  <img width="70%" height="70%" src="https://github.com/iqiukp/ZoomPlot/blob/master/imgs/demo.png">
+  <img width="50%" height="50%" src="https://github.com/iqiukp/ZoomPlot/blob/master/imgs/demo.png">
 </p>
 
 <h3 align="center"> ZoomPlot </h3>
@@ -30,12 +31,46 @@ zp.plot(axes1, axesParams, lineParams)
 - lineParams：parameter of inserted lines
  
 ## Axes position
+
 <p align="center">
   <img width="60%" height="60%" src="https://github.com/iqiukp/ZoomPlot/blob/master/imgs/figure-axes.png">
 </p>
  
 ## Line direction
+
 <p align="center">
   <img width="60%" height="60%" src="https://github.com/iqiukp/ZoomPlot/blob/master/imgs/line.png">
 </p>
  
+
+## Properties
+```
+properties
+        %
+        axes1
+        axes2
+        rectangle
+        XLimNew
+        YLimNew
+        mappingParams
+        
+        % parameters of inserted axes
+        axes2Box = 'on'
+        axes2BoxLineWidth = 1.2
+        axes2TickDirection = 'in'
+        
+        % parameters of inserted rectangle
+        rectangleColor = 'k'
+        rectangleFaceColor = 'none'
+        rectangleFaceAlpha = 1
+        rectangleLineStyle = '-'
+        rectangleLineWidth = 1.2
+        
+        % parameters of inserted line
+        boxLineStyle = '-'
+        boxLineColor = 'k'
+        boxLineWidth = 1.5
+        boxLineMarker = 'none'
+        boxLineMarkerSize = 6
+    end
+```
