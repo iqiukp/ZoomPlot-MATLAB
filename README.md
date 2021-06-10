@@ -88,7 +88,7 @@ zp.plot(axes1, axesParams, lineParams)
 
 ## Properties
 
-You cab edit the parameters of axes, rectangle, and line in the file -- "BaseZoom.m"
+You can edit the parameters of axes, rectangle, and line in the file -- "BaseZoom.m"
 
 ```
 properties
