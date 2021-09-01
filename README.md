@@ -6,7 +6,7 @@
 <h3 align="center"> ZoomPlot </h3>
 
 <p align="center">MATLAB code for magnification of the customized regions of the plot's axis</p>
-<p align="center">Version 1.1, 10-SEP-2021</p>
+<p align="center">Version 1.1, 1-SEP-2021</p>
 <p align="center">Email: iqiukp@outlook.com</p>
 
 <div align=center>
