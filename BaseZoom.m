@@ -6,7 +6,7 @@ classdef BaseZoom < handle
     
     -----------------------------------------------------------------
     
-        Version 1.0, 10-JUN-2021
+        Version 1.1, 1-SEP-2021
         Email: iqiukp@outlook.com
     -----------------------------------------------------------------
     %}
@@ -22,6 +22,7 @@ classdef BaseZoom < handle
         
         % parameters of inserted axes
         axes2Box = 'on'
+        axes2BoxColor = 'none'
         axes2BoxLineWidth = 1.2
         axes2TickDirection = 'in'
         
@@ -30,37 +31,38 @@ classdef BaseZoom < handle
         rectangleFaceColor = 'none'
         rectangleFaceAlpha = 1
         rectangleLineStyle = '-'
-        rectangleLineWidth = 1.2
+        rectangleLineWidth = 0.8
         
         % parameters of inserted line
-        boxLineStyle = '-'
+        boxLineStyle = ':'
         boxLineColor = 'k'
-        boxLineWidth = 1.5
+        boxLineWidth = 1
         boxLineMarker = 'none'
         boxLineMarkerSize = 6
     end
     
     methods
-        function plot(obj, axes1, axesParams, lineParams)
-            obj.axes1 = axes1;
+        function plot(obj, parameters)
+%             function plot(obj, axes1, axesParams, lineParams)
+            obj.axes1 = gca;
             legendExist = ~isempty(obj.axes1.Legend);
             if legendExist
                 string_ = obj.axes1.Legend.String;
             end
             % insert an axes
-            obj.insertAxes(axes1, axesParams);
+            obj.insertAxes(obj.axes1, parameters);
             % insert an rectangle
             obj.insertRectangle;
             % insert lines between the inserted axes and rectangle
-            obj.connectAxesAndBox(lineParams)
+            obj.connectAxesAndBox(parameters.lineDirection)
             if legendExist
                 obj.axes1.Legend.String = string_;
             end
         end
         
-        function insertAxes(obj, axes1, axesParams)
+        function insertAxes(obj, axes1, parameters)
             % insert an axes
-            position_ = axesParams.position;
+            position_ = parameters.axesPosition;
             position_(1, 1) = axes1.Position(3)*position_(1)+axes1.Position(1);
             position_(1, 2) = axes1.Position(4)*position_(2)+axes1.Position(2);
             position_(1, 3) = axes1.Position(3)*position_(3);
@@ -68,32 +70,17 @@ classdef BaseZoom < handle
             
             obj.axes2 = axes('Position', position_);
             copyobj(get(axes1, 'children'), obj.axes2)
-            obj.computeLimit(axes1, axesParams);
+            
+            obj.XLimNew = parameters.zoomZone(1, :);
+            obj.YLimNew = parameters.zoomZone(2, :);
+            
             hold(obj.axes2, 'on');
             set(obj.axes2, 'LineWidth', obj.axes2BoxLineWidth,...
                 'TickDir', obj.axes2TickDirection, 'Box', obj.axes2Box,...
-                'XLim', obj.XLimNew, 'YLim', obj.YLimNew);
+                'XLim', obj.XLimNew, 'YLim', obj.YLimNew,...
+                'Color', obj.axes2BoxColor);
         end
-        
-        function computeLimit(obj, axes1, axesParams)
-            % compute X-Limit and Y-Limit of inserted axes
-            zoomZone = axesParams.zoomZone;
-            expandRatio = axesParams.expandRatio;
-            lineData = get(axes1, 'children');
-            YData = [];
-            for i = 1:length(lineData)
-                tmp_ = lineData(i).YData;
-                YData = [YData; tmp_(zoomZone)];
-                XData = lineData(i).XData;
-            end
-            %
-            tmp_x = (XData(zoomZone(1, 2))-XData(zoomZone(1, 1)))*expandRatio(1, 1);
-            obj.XLimNew = [XData(zoomZone(1, 1))-tmp_x, XData(zoomZone(1, 2))+tmp_x];
-            %
-            tmp_y = (max(max(YData))-min(min(YData)))*expandRatio(1, 2);
-            obj.YLimNew = [min(min(YData))-tmp_y, max(max(YData))+tmp_y];
-        end
-        
+
         function mappingParams = computeMappingParams(obj)
             % compute the mapping parameters
             map_k_x = range(obj.axes1.XLim)/obj.axes1.Position(3);
@@ -116,8 +103,7 @@ classdef BaseZoom < handle
                 'Color', obj.rectangleColor);
         end
         
-        function connectAxesAndBox(obj, boxParams)
-            
+        function connectAxesAndBox(obj, lineDirection)
             % insert lines between the inserted axes and rectangle
             
             %   Rectangle         Axes
@@ -148,12 +134,12 @@ classdef BaseZoom < handle
                 obj.mappingParams(1, 1)+obj.mappingParams(1, 2);
             box2_4(1, 2) = obj.axes2.Position(2)*obj.mappingParams(2, 1)+obj.mappingParams(2, 2);
             box2 = [box2_1; box2_2; box2_3; box2_4];
-            
+
             % insert lines
-            numLine = size(boxParams.lineDirection, 1);
+            numLine = size(lineDirection, 1);
             for i = 1:numLine
-                pos1 = [box1(boxParams.lineDirection(i, 1), 1), box2(boxParams.lineDirection(i, 2), 1)];
-                pos2 = [box1(boxParams.lineDirection(i, 1), 2), box2(boxParams.lineDirection(i, 2), 2)];
+                pos1 = [box1(lineDirection(i, 1), 1), box2(lineDirection(i, 2), 1)];
+                pos2 = [box1(lineDirection(i, 1), 2), box2(lineDirection(i, 2), 2)];
                 line(pos1, pos2, 'Parent', obj.axes1, 'Color', obj.boxLineColor,...
                     'LineWidth', obj.boxLineWidth, 'LineStyle', obj.boxLineStyle,...
                     'Marker', obj.boxLineMarker, 'MarkerSize', obj.boxLineMarkerSize);
