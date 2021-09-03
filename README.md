@@ -5,8 +5,8 @@
 
 <h3 align="center"> ZoomPlot </h3>
 
-<p align="center">MATLAB code for Magnification of the customized regions of the plot's axis</p>
-<p align="center">Version 1.0, 10-JUN-2021</p>
+<p align="center">MATLAB code for magnification of the customized regions of the plot's axis</p>
+<p align="center">Version 1.1, 1-SEP-2021</p>
 <p align="center">Email: iqiukp@outlook.com</p>
 
 <div align=center>
@@ -21,16 +21,7 @@
 
 ## How to use
 
-```
-zp = BaseZoom();
-zp.plot(axes1, axesParams, lineParams)
-```
-- BaseZoom(): class file
-- axes1：parent coordinate system object (or use "gca")
-- axesParams：parameter of new axes
-- lineParams：parameter of inserted lines
- 
-## Simple demo
+### Simple demo
 ```
 % Magnification of the customized regions of the plot's axis.
 clc
@@ -58,40 +49,42 @@ legend(axes1, 'line-1', 'line-2', 'line-3')
 
 %% new axes
 % parameters of axes
-axesParams = struct('position', [0.7, 0.1, 0.2, 0.4],...
-                    'zoomZone', [9, 12],...
-                    'expandRatio', [0.1, 0.1]);
+parameters = struct('axesPosition', [0.6, 0.1, 0.2, 0.4],...
+                    'zoomZone', [1.5, 2.5; 0.6, 1.3],...
+                    'lineDirection', [1, 2; 4, 3]);
                 
-% parameters of line
-            %   Rectangle         Axes
-            %    2----1          2----1
-            %    3----4          3----4
-lineParams = struct('lineDirection', [1, 2; 4, 3]);
-
 %% plot
 zp = BaseZoom();
-zp.plot(axes1, axesParams, lineParams)
+zp.plot(parameters)
 ```
 
-## Axes position
+## About the parameters
+
+### axesPosition
+Specify axesPosition as a four-element vector of the form [x y w h] in data units. The x and y elements determine the location and the w and h elements determine the size. The function plots into the current axes without clearing existing content from the axes.
 
 <p align="center">
   <img width="60%" height="60%" src="https://github.com/iqiukp/ZoomPlot/blob/main/imgs/figure-axes.png">
 </p>
+
+### zoomZone
+The zoomZone is a 2-by-2 matrix that represents the coordinates of a rectangular box. x_start and x_end in the first line are the x-coordinate starting and ending points of the zoom zone, and y_start and y_end in the second line are the y-coordinate starting and ending points of the zoom zone.
  
 ## Line direction
+The rectangular box of the zoom zone is connected to the subcoordinate system by connecting lines. The four angles of the rectangular box and the subcoordinate system are 1,2,3,4. The corresponding four angles are upper right, upper left, lower left, and lower right respectively. The following figure shows the direction settings for several common cases:
 
 <p align="center">
   <img width="60%" height="60%" src="https://github.com/iqiukp/ZoomPlot/blob/main/imgs/line.png">
 </p>
- 
+
+Take the first group as an example: the lower right corner (4) of the rectangular box is connected to the lower left corner (3) of the subcoordinate system, and the upper right corner (1) of the rectangular box is connected to the upper left corner (2) of the subcoordinate system, so the direction parameters are [1, 2; 4, 3].
 
 ## Properties
 
 You can edit the parameters of axes, rectangle, and line in the file -- "BaseZoom.m"
 
 ```
-properties
+    properties
         %
         axes1
         axes2
@@ -102,6 +95,7 @@ properties
         
         % parameters of inserted axes
         axes2Box = 'on'
+        axes2BoxColor = 'none'
         axes2BoxLineWidth = 1.2
         axes2TickDirection = 'in'
         
@@ -110,13 +104,54 @@ properties
         rectangleFaceColor = 'none'
         rectangleFaceAlpha = 1
         rectangleLineStyle = '-'
-        rectangleLineWidth = 1.2
+        rectangleLineWidth = 0.8
         
         % parameters of inserted line
-        boxLineStyle = '-'
+        boxLineStyle = ':'
         boxLineColor = 'k'
-        boxLineWidth = 1.5
+        boxLineWidth = 1
         boxLineMarker = 'none'
         boxLineMarkerSize = 6
     end
 ```
+
+For example, change the rectangle box to a red dotted line with a width of 2:
+```
+        % parameters of inserted rectangle
+        rectangleColor = 'r'
+        rectangleFaceColor = 'none'
+        rectangleFaceAlpha = 1
+        rectangleLineStyle = ':'
+        rectangleLineWidth = 2
+```
+
+<p align="center">
+  <img width="60%" height="60%" src="https://github.com/iqiukp/ZoomPlot/blob/main/imgs/3.png">
+</p>
+
+For example, change the box and scale orientation of the subcoordinate system:
+```
+        % parameters of inserted axes
+        axes2Box = 'off'
+        axes2BoxColor = 'none'
+        axes2BoxLineWidth = 1.2
+        axes2TickDirection = 'out'
+```
+
+<p align="center">
+  <img width="60%" height="60%" src="https://github.com/iqiukp/ZoomPlot/blob/main/imgs/4.png">
+</p>
+
+For example, change the connection line to a red dotted line with a width of 2:
+```
+        % parameters of inserted line
+        boxLineStyle = ':'
+        boxLineColor = 'r'
+        boxLineWidth = 2
+        boxLineMarker = 'none'
+        boxLineMarkerSize = 6
+```
+
+<p align="center">
+  <img width="60%" height="60%" src="https://github.com/iqiukp/ZoomPlot/blob/main/imgs/5.png">
+</p>
