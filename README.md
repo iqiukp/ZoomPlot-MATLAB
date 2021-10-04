@@ -13,7 +13,19 @@
 </div>
 <hr />
 
-## Main features
+## Features in next version
+
+
+- Use the mouse to select the position of the sub-coordinate system
+- Use the mouse to select the position of the magnified zone (rectangle)
+- Automatically connect the sub-coordinate system and the magnified zone (rectangle)
+
+<p align="center">
+  <img src="https://github.com/iqiukp/ZoomPlot/blob/main/imgs/new.gif">
+</p>
+
+
+## Main features in current version
 
 - Easy-used API
 - Parameter setting of independent modules (axes, rectangle, and line)
