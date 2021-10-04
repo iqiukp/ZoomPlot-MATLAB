@@ -26,7 +26,7 @@
 - Interactive plotting
 - Drag the mouse to adjust the size and position of the sub-coordinate system 
 - Drag the mouse to adjust the size and position of the magnification zone
-
+- ZoomPlot V1.2 is not compatible with the versions lower than R2014b.
 
 ## How to use
 
