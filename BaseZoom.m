@@ -33,7 +33,7 @@ classdef BaseZoom < handle
         subAxesBox = 'on'
         subAxesinsertedLineWidth = 1.2
         subAxesTickDirection = 'in'
-        subAxesBackgroundColor = 'none'
+        subAxesBackgroundColor = 'w'
     end
 
     properties
