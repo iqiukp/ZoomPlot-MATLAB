@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/iqiukp/ZoomPlot/blob/main/imgs/v1.2.gif">
+  <img src="https://github.com/iqiukp/ZoomPlot/blob/main/v1.2-demo.gif">
 </p>
 
 <h3 align="center">ZoomPlot</h3>
@@ -28,6 +28,11 @@
 - Drag the mouse to adjust the size and position of the magnification zone
 - ZoomPlot V1.2 is not compatible with the versions lower than R2014b.
 
+## Requirements
+
+- R2014b and later releases
+- Image Processing Toolbox
+
 ## How to use
 
 1. Add BaseZoom.m file to MATLAB search path or current working directory
@@ -44,7 +49,7 @@ zp = BaseZoom();
 zp.plot;
 ```
 <p align="center">
-  <img src="https://github.com/iqiukp/ZoomPlot/blob/main/imgs/06.png">
+  <img src="https://z3.ax1x.com/2021/10/06/4xNr9I.png">
 </p>
 
 ## How to customize the theme of the sub-coordinate system
@@ -70,7 +75,7 @@ For example, remove the border of the sub-coordinate system and set the line wid
     end
 ```
 <p align="center">
-  <img src="https://github.com/iqiukp/ZoomPlot/blob/main/imgs/02.png">
+  <img src="https://z3.ax1x.com/2021/10/06/4xwQr6.png">
 </p>
 
 ## How to customize the theme of the rectangle of the magnification zone
@@ -101,7 +106,7 @@ For example, set the line color to red and the line width to 2:
 ```
 
 <p align="center">
-  <img src="https://github.com/iqiukp/ZoomPlot/blob/main/imgs/03.png">
+  <img src="https://z3.ax1x.com/2021/10/06/4xw3VO.png">
 </p>
 
 ## How to customize the theme of the connected lines
@@ -129,7 +134,7 @@ In this code, the connecting line is a type of "doublearrow". For example, set t
     end
 ```
 <p align="center">
-  <img src="https://github.com/iqiukp/ZoomPlot/blob/main/imgs/04.png">
+  <img src="https://z3.ax1x.com/2021/10/06/4xwGIe.png">
 </p>
 
 ## About the axes position
@@ -137,14 +142,14 @@ In this code, the connecting line is a type of "doublearrow". For example, set t
 Specify axes position as a four-element vector of the form [x y w h] in data units. The x and y elements determine the location and the w and h elements determine the size. The function plots into the current axes without clearing existing content from the axes.
 
 <p align="center">
-  <img src="https://github.com/iqiukp/ZoomPlot/blob/main/imgs/figure-axes.png">
+  <img src="https://z3.ax1x.com/2021/10/06/4xwtGd.png">
 </p>
  
 ## About line direction
 The rectangular box of the zoom zone is connected to the subcoordinate system by connecting lines. The four angles of the rectangular box and the subcoordinate system are 1,2,3,4. The corresponding four angles are upper right, upper left, lower left, and lower right respectively. The following figure shows the direction settings for several common cases:
 
 <p align="center">
-  <img src="https://github.com/iqiukp/ZoomPlot/blob/main/imgs/line.png">
+  <img src="https://z3.ax1x.com/2021/10/06/4xwUxI.png">
 </p>
 
 Take the first group as an example: the lower right corner (4) of the rectangular box is connected to the lower left corner (3) of the subcoordinate system, and the upper right corner (1) of the rectangular box is connected to the upper left corner (2) of the subcoordinate system, so the direction parameters are [1, 2; 4, 3].
