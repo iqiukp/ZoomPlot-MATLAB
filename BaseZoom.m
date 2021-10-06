@@ -302,9 +302,11 @@ classdef BaseZoom < handle
 
         function mappingParams = computeMappingParams(obj)
             % compute the mapping parameters
-            map_k_x = range(obj.mainAxes.XLim)/obj.mainAxes.Position(3);
+            rangeXLim = obj.mainAxes.XLim(1, 2)-obj.mainAxes.XLim(1, 1);
+            rangeYLim = obj.mainAxes.YLim(1, 2)-obj.mainAxes.YLim(1, 1);
+            map_k_x = rangeXLim/obj.mainAxes.Position(3);
             map_b_x = obj.mainAxes.XLim(1)-obj.mainAxes.Position(1)*map_k_x;
-            map_k_y = range(obj.mainAxes.YLim)/obj.mainAxes.Position(4);
+            map_k_y = rangeYLim/obj.mainAxes.Position(4);
             map_b_y = obj.mainAxes.YLim(1)-obj.mainAxes.Position(2)*map_k_y;
             mappingParams = [map_k_x, map_b_x; map_k_y, map_b_y];
         end
