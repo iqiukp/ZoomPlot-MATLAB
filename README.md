@@ -36,6 +36,17 @@
 zp = BaseZoom();
 zp.plot;
 ```
+## How to draw multiple magnification zones
+
+After completing the drawing of one magnification zone, enter the following two lines of code in the command line window to start another drawing of one magnification zone: 
+```
+zp = BaseZoom();
+zp.plot;
+```
+<p align="center">
+  <img src="https://github.com/iqiukp/ZoomPlot/blob/main/imgs/06.png">
+</p>
+
 ## How to customize the theme of the sub-coordinate system
 
 Just modify the properties of the BaseZoom class file. The default properties are: 
