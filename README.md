@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/iqiukp/ZoomPlot/blob/main/v1.2-demo.gif">
+  <img src="https://i.loli.net/2021/10/06/N9h8qEXsAa7IQjU.gif">
 </p>
 
 <h3 align="center">ZoomPlot</h3>
