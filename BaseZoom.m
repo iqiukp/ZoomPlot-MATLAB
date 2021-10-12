@@ -421,7 +421,10 @@ classdef BaseZoom < handle
             % set the theme of the dynamic rectangle
             switch obj.drawFunc
                 case 'drawrectangle'
-                    obj.roi.MarkerSize = obj.dynamicRectFacAngleMarkerSize;
+                    try
+                        obj.roi.MarkerSize = obj.dynamicRectFacAngleMarkerSize;
+                    catch
+                    end
                     obj.roi.Color = obj.dynamicRectFaceColor;
                     obj.roi.FaceAlpha = obj.dynamicRectFaceAspect;
                     obj.roi.LineWidth = obj.dynamicRectLineWidth;
