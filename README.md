@@ -5,7 +5,7 @@
 <h3 align="center">ZoomPlot</h3>
 
 <p align="center">MATLAB Code for Interactive Magnification of the customized regions.</p>
-<p align="center">Version 1.2, 4-OCT-2021</p>
+<p align="center">Version 1.2.1, 4-OCT-2021</p>
 <p align="center">Email: iqiukp@outlook.com</p>
 
 <div align=center>
