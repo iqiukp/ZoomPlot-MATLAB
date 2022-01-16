@@ -14,10 +14,10 @@ y1 = [y1_, fliplr(y1_)];
 y2 = [y2_, fliplr(y2_)];
 
 figure;
-plot(t, y2, 'Color', '#A2142F', 'LineStyle', '-', 'LineWidth', 1.5) 
+plot(t, y2, 'Color', 'r', 'LineStyle', '-', 'LineWidth', 1.5) 
 hold on
-plot(t, y1, 'Color', '#0072BD', 'LineStyle', ':', 'LineWidth', 1.5) 
-plot(t, -y1, 'Color', '#0072BD', 'LineStyle', ':','LineWidth', 1.5) 
+plot(t, y1, 'Color', 'b', 'LineStyle', ':', 'LineWidth', 1.5) 
+plot(t, -y1, 'Color', 'b', 'LineStyle', ':','LineWidth', 1.5) 
 xlim([min(t), max(t)])
 
 

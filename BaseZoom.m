@@ -146,14 +146,10 @@ classdef BaseZoom < handle
                 % information about the image
                 obj.CData_ = get(obj.mainAxes.Children, 'CData');
                 %
-
-                switch obj.drawFunc
-                    case 'drawrectangle'
-                        obj.Colormap_ = colormap(gca);
-                    case 'imrect'
-                        obj.Colormap_ = colormap(gcf);
+                obj.Colormap_ = colormap(gca);
+                if size(obj.Colormap_, 1) == 64
+                    obj.Colormap_ = colormap(gcf);
                 end
-
                 [obj.vPixels, obj.uPixels, ~] = size(obj.CData_);
                 obj.vuRatio = obj.vPixels/obj.uPixels;
                 obj.imageDim = length(size(obj.CData_));
