@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="https://i.loli.net/2021/10/06/N9h8qEXsAa7IQjU.gif">
+  <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/figure-1.gif">
 </p>
 
 <h3 align="center">ZoomPlot</h3>
 
-<p align="center">MATLAB Code for Interactive Magnification of the customized regions.</p>
-<p align="center">Version 1.2.1, 4-OCT-2021</p>
+<p align="center">MATLAB Code for Interactive Magnification of Customized Regions.</p>
+<p align="center">Version 1.3, 17-JAN-2022</p>
 <p align="center">Email: iqiukp@outlook.com</p>
 
 <div align=center>
@@ -22,10 +22,11 @@
 
 ## Main features
 
-- Easy application by only two lines of code
+- Easy application with just two lines of code
 - Interactive plotting
-- Drag the mouse to adjust the size and position of the sub-coordinate system 
-- Drag the mouse to adjust the size and position of the magnification zone
+- Support for image and figure classes
+- Support for multiple zoomed zones
+- Custom settings of parameters and themes 
 
 ## Requirements
 
@@ -37,26 +38,50 @@
 1. Add BaseZoom.m file to MATLAB search path or current working directory
 2. After completing the basic drawing, enter the following two lines of code in the command line window or your m-file: 
 ```
+% add a zoomed zone
 zp = BaseZoom();
 zp.plot;
 ```
-## How to draw multiple magnification zones
 
-After completing the drawing of one magnification zone, enter the following two lines of code in the command line window to start another drawing of one magnification zone: 
+*if multiple zoomed zones are required, for example, 3 zoomed zones, the code are as follows:*
 ```
+% add 3 zoomed zones
 zp = BaseZoom();
 zp.plot;
+zp.plot;
+zp.plot;
 ```
+
+## Examples for image class
+
+Multiple types of image are supported for interactive magnification of customized regions in the **ZoomPlot**.
 <p align="center">
-  <img src="https://z3.ax1x.com/2021/10/06/4xNr9I.png">
+  <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/image-2.gif">
+</p>
+<p align="center">
+  <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/image-1.gif">
+</p>
+<p align="center">
+  <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/image-3.gif">
+</p>
+
+
+## Examples for figure class
+
+Multiple zoomed zones are supported for figure class.
+<p align="center">
+  <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/figure-4.gif">
+</p>
+<p align="center">
+  <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/figure-2_1.gif">
 </p>
 
 ## How to customize the theme of the sub-coordinate system
 
 Just modify the properties of the BaseZoom class file. The default properties are: 
 ```
+    % theme of inserted axes (sub-axes)
     properties
-        % theme of inserted axes (sub-axes)
         subAxesBox = 'on'
         subAxesinsertedLineWidth = 1.2
         subAxesTickDirection = 'in'
@@ -65,8 +90,8 @@ Just modify the properties of the BaseZoom class file. The default properties ar
 ```
 For example, remove the border of the sub-coordinate system and set the line width to 3: 
 ```
+    % theme of inserted axes (sub-axes)
     properties
-        % theme of inserted axes (sub-axes)
         subAxesBox = 'off'
         subAxesinsertedLineWidth = 3
         subAxesTickDirection = 'in'
@@ -74,15 +99,15 @@ For example, remove the border of the sub-coordinate system and set the line wid
     end
 ```
 <p align="center">
-  <img src="https://z3.ax1x.com/2021/10/06/4xwQr6.png">
+  <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/change_1.png">
 </p>
 
-## How to customize the theme of the rectangle of the magnification zone
+## How to customize the theme of the zoomed zone
 
 Just modify the properties of the BaseZoom class file. The default properties are: 
 ```
+    % theme of the zoomed zone (figures)
     properties
-        % theme of the inserted rectangle (zoom zone)
         rectangleColor = 'k'
         rectangleFaceColor = 'none'
         rectangleFaceAlpha = 0
@@ -93,8 +118,8 @@ Just modify the properties of the BaseZoom class file. The default properties ar
 ```
 For example, set the line color to red and the line width to 2: 
 ```
+    % theme of the zoomed zone (figures)
     properties
-        % theme of the inserted rectangle (zoom zone)
         rectangleColor = 'r'
         rectangleFaceColor = 'none'
         rectangleFaceAlpha = 0
@@ -105,50 +130,48 @@ For example, set the line color to red and the line width to 2:
 ```
 
 <p align="center">
-  <img src="https://z3.ax1x.com/2021/10/06/4xw3VO.png">
+  <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/change_2.png">
 </p>
 
 ## How to customize the theme of the connected lines
 
 Just modify the properties of the BaseZoom class file. The default properties are: 
 ```
+    % theme of the connected lines (figures)
     properties
-        % theme of the connected lines
-        connectedLineStyle = ':'
-        connectedLineColor = 'k'
-        connectedLineWidth = 2
-        connectedLineHeadStyle = 'ellipse'
-        connectedLineHeadSize = 5
+        % setting of lines between arrows
+        figureConnectedLineStyle = ':'
+        figureConnectedLineColor = 'k'
+        figureConnectedLineWidth = 1.2
+        % setting of start arrow
+        figureConnectedLineStartHeadStyle = 'ellipse' % shape of start arrow
+        figureConnectedLineStartHeadLength = 3
+        figureConnectedLineStartHeadWidth = 3
+        % setting of end arrow
+        figureConnectedLineEndHeadStyle = 'cback2' % shape of ending arrow
+        figureConnectedLineEndHeadLength = 7
+        figureConnectedLineEndHeadWidth = 7
     end
 ```
-In this code, the connecting line is a type of "doublearrow". For example, set the mark size at both ends of the connecting line to 10, the color of the connecting line to red, and the line width to 5: 
+For example, set the shape of ending arrow to 'ellipse' and the line color to 'b':
+
 ```
+    % theme of the connected lines (figures)
     properties
-        % theme of the connected lines
-        connectedLineStyle = ':'
-        connectedLineColor = 'r'
-        connectedLineWidth = 5
-        connectedLineHeadStyle = 'ellipse'
-        connectedLineHeadSize = 10
+        % setting of lines between arrows
+        figureConnectedLineStyle = ':'
+        figureConnectedLineColor = 'r'
+        figureConnectedLineWidth = 1.2
+        % setting of start arrow
+        figureConnectedLineStartHeadStyle = 'ellipse' % shape of start arrow
+        figureConnectedLineStartHeadLength = 3
+        figureConnectedLineStartHeadWidth = 3
+        % setting of end arrow
+        figureConnectedLineEndHeadStyle = 'ellipse' % shape of ending arrow
+        figureConnectedLineEndHeadLength = 7
+        figureConnectedLineEndHeadWidth = 7
     end
 ```
 <p align="center">
-  <img src="https://z3.ax1x.com/2021/10/06/4xwGIe.png">
+  <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/change_3.png">
 </p>
-
-## About the axes position
-
-Specify axes position as a four-element vector of the form [x y w h] in data units. The x and y elements determine the location and the w and h elements determine the size. The function plots into the current axes without clearing existing content from the axes.
-
-<p align="center">
-  <img src="https://z3.ax1x.com/2021/10/06/4xwtGd.png">
-</p>
- 
-## About line direction
-The rectangular box of the zoom zone is connected to the subcoordinate system by connecting lines. The four angles of the rectangular box and the subcoordinate system are 1,2,3,4. The corresponding four angles are upper right, upper left, lower left, and lower right respectively. The following figure shows the direction settings for several common cases:
-
-<p align="center">
-  <img src="https://z3.ax1x.com/2021/10/06/4xwUxI.png">
-</p>
-
-Take the first group as an example: the lower right corner (4) of the rectangular box is connected to the lower left corner (3) of the subcoordinate system, and the upper right corner (1) of the rectangular box is connected to the upper left corner (2) of the subcoordinate system, so the direction parameters are [1, 2; 4, 3].
