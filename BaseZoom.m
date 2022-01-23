@@ -1,17 +1,35 @@
 classdef BaseZoom < handle
     %{
-        CLASS DESCRIPTION
 
         Interactive Magnification of Customized Regions.
-    
-     -------------------------------------------------------------
-    
-        Version 1.3, 17-JAN-2022
+
         Email: iqiukp@outlook.com
+    
+        -------------------------------------------------------------
+  
+        Version 1.3.1, 24-JAN-2022
+            -- Fixed bugs when applied to logarithmic-scale coordinates. 
 
-     -------------------------------------------------------------
+        Version 1.3, 17-JAN-2022
+            -- Fixed minor bugs.
+            -- Added support for image class.
 
-        Copyright 2022 Kepeng Qiu
+        Version 1.2, 4-OCT-2021
+            -- Added support for interaction
+
+        Version 1.1, 1-SEP-2021
+            -- Fixed minor bugs.
+            -- Added description of parameters.   
+
+        Version 1.0, 10-JUN-2021
+            -- Magnification of Customized Regions.
+
+        -------------------------------------------------------------
+        
+        BSD 3-Clause License
+        Copyright (c) 2022, Kepeng Qiu
+        All rights reserved.
+        
     %}
 
     % main  properties
@@ -49,6 +67,7 @@ classdef BaseZoom < handle
         rectangleDone = 'off'
         pauseTime = 0.2
         textDisplay = 'on'
+        axesScale
     end
 
     % theme of inserted axes (sub-axes)
@@ -139,6 +158,8 @@ classdef BaseZoom < handle
             % main steps
             obj.checkVersion;
             obj.mainAxes = gca;
+            obj.axesScale.XScale = obj.mainAxes.XScale;
+            obj.axesScale.YScale = obj.mainAxes.YScale;            
             obj.mainFigure = gcf;
 
             if size(imhandles(obj.mainAxes),1) ~= 0
@@ -471,7 +492,9 @@ classdef BaseZoom < handle
                     end
 
                 case 'figure'
-                    obj.subAxes = axes('Position', obj.affinePosition);
+                    obj.subAxes = axes('Position', obj.affinePosition,...
+                                       'XScale', obj.axesScale.XScale,...
+                                       'YScale', obj.axesScale.YScale);
                     children_ = get(obj.mainAxes, 'children');
                     numChildren_ = 1:length(children_);
                     for ii = 1:length(children_)
@@ -487,7 +510,9 @@ classdef BaseZoom < handle
                         'Box', obj.subAxesBox,...
                         'Color', obj.subAxesBackgroundColor,...
                         'XLim', get(obj.mainAxes, 'XLim'),...
-                        'YLim', get(obj.mainAxes, 'YLim'));
+                        'YLim', get(obj.mainAxes, 'YLim'),...
+                        'XScale', obj.axesScale.XScale,...
+                        'YScale', obj.axesScale.YScale);
                     set(obj.subAxes, 'Visible', 'off');
             end
         end
@@ -517,12 +542,36 @@ classdef BaseZoom < handle
 
         function mappingParams = computeMappingParams(obj)
             % compute the mapping parameters
-            rangeXLim = obj.mainAxes.XLim(1, 2)-obj.mainAxes.XLim(1, 1);
-            rangeYLim = obj.mainAxes.YLim(1, 2)-obj.mainAxes.YLim(1, 1);
+
+            switch obj.axesScale.XScale
+                case 'linear'
+                    rangeXLim = obj.mainAxes.XLim(1, 2)-obj.mainAxes.XLim(1, 1);
+                case 'log'
+                    rangeXLim = log10(obj.mainAxes.XLim(1, 2))-log10(obj.mainAxes.XLim(1, 1));
+            end
             map_k_x = rangeXLim/obj.mainAxes.Position(3);
-            map_b_x = obj.mainAxes.XLim(1)-obj.mainAxes.Position(1)*map_k_x;
+
+            switch obj.axesScale.YScale
+                case 'linear'
+                    rangeYLim = obj.mainAxes.YLim(1, 2)-obj.mainAxes.YLim(1, 1);
+                case 'log'
+                    rangeYLim = log10(obj.mainAxes.YLim(1, 2))-log10(obj.mainAxes.YLim(1, 1));
+            end
             map_k_y = rangeYLim/obj.mainAxes.Position(4);
-            map_b_y = obj.mainAxes.YLim(1)-obj.mainAxes.Position(2)*map_k_y;
+
+            switch obj.axesScale.XScale
+                case 'linear'
+                    map_b_x = obj.mainAxes.XLim(1)-obj.mainAxes.Position(1)*map_k_x;
+                case 'log'
+                    map_b_x = log10(obj.mainAxes.XLim(1))-obj.mainAxes.Position(1)*map_k_x;
+            end
+
+            switch obj.axesScale.YScale
+                case 'linear'
+                    map_b_y = obj.mainAxes.YLim(1)-obj.mainAxes.Position(2)*map_k_y;
+                case 'log'
+                    map_b_y = log10(obj.mainAxes.YLim(1))-obj.mainAxes.Position(2)*map_k_y;
+            end
             mappingParams = [map_k_x, map_b_x; map_k_y, map_b_y];
         end
 
@@ -729,16 +778,43 @@ classdef BaseZoom < handle
             switch type
                 % absolute coordinates to normalized coordinates
                 case 'a2n'
-                    coordinate(1, 1) = (coordinate(1, 1)-obj.mappingParams(1, 2))...
-                        /obj.mappingParams(1, 1);
-                    coordinate(1, 2) = (coordinate(1, 2)-obj.mappingParams(2, 2))...
-                        /obj.mappingParams(2, 1);
-                    % normalized coordinates to absolute coordinates
+                    switch obj.axesScale.XScale
+                        case 'linear'
+                            coordinate(1, 1) = (coordinate(1, 1)-obj.mappingParams(1, 2))...
+                                /obj.mappingParams(1, 1);
+                        case 'log'
+                            coordinate(1, 1) = (log10(coordinate(1, 1))-obj.mappingParams(1, 2))...
+                                /obj.mappingParams(1, 1);
+                    end
+
+                    switch obj.axesScale.YScale
+                        case 'linear'
+                            coordinate(1, 2) = (coordinate(1, 2)-obj.mappingParams(2, 2))...
+                                /obj.mappingParams(2, 1);
+                        case 'log'
+                            coordinate(1, 2) = (log10(coordinate(1, 2))-obj.mappingParams(2, 2))...
+                                /obj.mappingParams(2, 1);
+                    end
+
+                % normalized coordinates to absolute coordinates
                 case 'n2a'
-                    coordinate(1, 1) = coordinate(1, 1)*obj.mappingParams(1, 1)...
-                        +obj.mappingParams(1, 2);
-                    coordinate(1, 2) = coordinate(1, 2)*obj.mappingParams(2, 1)...
-                        +obj.mappingParams(2, 2);
+                    switch obj.axesScale.XScale
+                        case 'linear'
+                            coordinate(1, 1) = coordinate(1, 1)*obj.mappingParams(1, 1)...
+                                +obj.mappingParams(1, 2);
+                        case 'log'
+                            coordinate(1, 1) = 10^(coordinate(1, 1)*obj.mappingParams(1, 1)...
+                                +obj.mappingParams(1, 2));
+                    end
+
+                    switch obj.axesScale.YScale
+                        case 'linear'
+                            coordinate(1, 2) = coordinate(1, 2)*obj.mappingParams(2, 1)...
+                                +obj.mappingParams(2, 2);
+                        case 'log'
+                            coordinate(1, 2) = 10^(coordinate(1, 2)*obj.mappingParams(2, 1)...
+                                +obj.mappingParams(2, 2));
+                    end
             end
         end
 
