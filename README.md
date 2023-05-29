@@ -68,7 +68,7 @@ Multiple zoomed zones are supported for figure class.
 
 ## 👉 Customize parameters using json files
 
-ZoomPlot's configuration parameters are stored in parameters.json and have the following default values: 
+ZoomPlot's configuration parameters are stored in `parameters.json` and have the following default values: 
 ```json
 {
     "subAxes": 
