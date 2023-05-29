@@ -20,7 +20,7 @@
 
 <hr />
 
-## Main features
+## ✨ Main features
 
 - Easy application with just two lines of code
 - Interactive plotting
@@ -28,23 +28,23 @@
 - Support for multiple zoomed zones
 - Custom settings of parameters and themes 
 
-## Requirements
+## ⚠️ Requirements
 
 - R2014b and later releases
 - Image Processing Toolbox
 
-## How to use
+## 👉 How to use
 
-1. Add BaseZoom.m file to MATLAB search path or current working directory
+1. Add `BaseZoom.m` file to MATLAB search path or current working directory
 2. After completing the basic drawing, enter the following two lines of code in the command line window or your m-file: 
-```
+```MATLAB
 % add a zoomed zone
 zp = BaseZoom();
 zp.plot;
 ```
 
 *if multiple zoomed zones are required, for example, 3 zoomed zones, the code are as follows:*
-```
+```MATLAB
 % add 3 zoomed zones
 zp = BaseZoom();
 zp.plot;
@@ -52,9 +52,9 @@ zp.plot;
 zp.plot;
 ```
 
-## Examples for image class
+## 👉 Examples for image class
 
-Multiple types of image are supported for interactive magnification of customized regions in the **ZoomPlot**.
+Multiple types of image are supported for interactive magnification of customized regions in the `ZoomPlot`.
 <p align="center">
   <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/image-2.gif">
 </p>
@@ -66,7 +66,7 @@ Multiple types of image are supported for interactive magnification of customize
 </p>
 
 
-## Examples for figure class
+## 👉 Examples for figure class
 
 Multiple zoomed zones are supported for figure class.
 <p align="center">
@@ -76,10 +76,10 @@ Multiple zoomed zones are supported for figure class.
   <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/figure-2_1.gif">
 </p>
 
-## How to customize the theme of the sub-coordinate system
+## 👉 How to customize the theme of the sub-coordinate system
 
 Just modify the properties of the BaseZoom class file. The default properties are: 
-```
+```MATLAB
     % theme of inserted axes (sub-axes)
     properties
         subAxesBox = 'on'
@@ -89,7 +89,7 @@ Just modify the properties of the BaseZoom class file. The default properties ar
     end
 ```
 For example, remove the border of the sub-coordinate system and set the line width to 3: 
-```
+```MATLAB
     % theme of inserted axes (sub-axes)
     properties
         subAxesBox = 'off'
@@ -102,10 +102,10 @@ For example, remove the border of the sub-coordinate system and set the line wid
   <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/change_1.png">
 </p>
 
-## How to customize the theme of the zoomed zone
+## 👉 How to customize the theme of the zoomed zone
 
 Just modify the properties of the BaseZoom class file. The default properties are: 
-```
+```MATLAB
     % theme of the zoomed zone (figures)
     properties
         rectangleColor = 'k'
@@ -117,7 +117,7 @@ Just modify the properties of the BaseZoom class file. The default properties ar
     end
 ```
 For example, set the line color to red and the line width to 2: 
-```
+```MATLAB
     % theme of the zoomed zone (figures)
     properties
         rectangleColor = 'r'
@@ -133,10 +133,10 @@ For example, set the line color to red and the line width to 2:
   <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/change_2.png">
 </p>
 
-## How to customize the theme of the connected lines
+## 👉 How to customize the theme of the connected lines
 
 Just modify the properties of the BaseZoom class file. The default properties are: 
-```
+```MATLAB
     % theme of the connected lines (figures)
     properties
         % setting of lines between arrows
@@ -155,7 +155,7 @@ Just modify the properties of the BaseZoom class file. The default properties ar
 ```
 For example, set the shape of ending arrow to 'ellipse' and the line color to 'b':
 
-```
+```MATLAB
     % theme of the connected lines (figures)
     properties
         % setting of lines between arrows
