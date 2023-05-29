@@ -1,5 +1,5 @@
 clc
-clear
+clear all
 close all
 addpath(genpath(pwd)) 
 
@@ -20,18 +20,9 @@ for i = 1:3
     plot(x, y{1, i}, 'Parent', ax, 'Color', color_(i, :), 'LineWidth', 3)
 end
 
-% add a zoomed zone
+% interactive magnification of customized Regions
 zp = BaseZoom();
 zp.plot;
-
-
-
-
-
-
-
-
-
 
 
 
