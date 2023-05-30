@@ -140,4 +140,3 @@ Another example, the color of the connecting line is changed to blue, the shape 
 <p align="center">
   <img src="https://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/change_0002.png" width = "60%">
 </p>
-
