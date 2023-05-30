@@ -140,3 +140,12 @@ Another example, the color of the connecting line is changed to blue, the shape 
 <p align="center">
   <img src="https://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/change_0002.png" width = "60%">
 </p>
+
+## TODO
+
+- [ ] Support for 3-D plots
+- [ ] Support for input of position parameters for sub coordinate system and zoomed area using a four-element vector of the form `[left bottom width height]`
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=iqiukp/ZoomPlot-MATLAB)](https://star-history.com/#iqiukp/ZoomPlot-MATLAB)
