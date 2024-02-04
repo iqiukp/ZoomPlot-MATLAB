@@ -5,7 +5,7 @@
 <h3 align="center">ZoomPlot</h3>
 
 <p align="center">MATLAB Code for Interactive Magnification of Customized Regions.</p>
-<p align="center">Version 1.4, 30-MAY-2023</p>
+<p align="center">Version 1.5, 6-FEB-2024</p>
 <p align="center">Email: iqiukp@outlook.com</p>
 
 <div align=center>
@@ -30,7 +30,7 @@
 
 ## ⚠️ Requirements
 
-- R2016a and later releases
+- R201Bb and later releases
 - Image Processing Toolbox
 
 ## 👉 How to use
@@ -52,6 +52,29 @@ zp.plot;
 zp.plot;
 ```
 
+## ✨ About `manual.pdf`:
+The `manual.pdf` file is the official user manual for the ZoomPlot MATLAB code. It provides users with detailed instructions on how to use the code, including the syntax, descriptions, example code, and requirements to run the ZoomPlot for interactive magnification of plots and images within MATLAB.
+
+- Introduction
+- Syntax
+- Description
+- Files
+- Requirements
+- Preparations
+- Examples
+  - Interactive Local Magnification for Figure Class
+  - Implement Multiple Local Magnifications for Figure Class
+  - Specify Axes for Local Magnification for Figure Class
+  - Manually Set SubAxes and Zoom Area for Figure Class
+  - Manually ZoomPlot in Sub Plots for Figure Class
+  - Interactive Local Magnification for Image Class
+  - Manually Set Zoom Area for Image Class
+- Parameter Configuration
+  - Sub Axes Theme
+  - Zoomed Area Theme
+  - Dynamic Rectangle Theme
+  - Connection Lines Theme
+    
 ## 👉 Examples for image class
 
 Multiple types of image are supported for interactive magnification of customized regions in the `ZoomPlot`.
@@ -140,11 +163,6 @@ Another example, the color of the connecting line is changed to blue, the shape 
 <p align="center">
   <img src="https://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/change_0002.png" width = "60%">
 </p>
-
-## TODO
-
-- [ ] Support for 3-D plots
-- [ ] Support for input of position parameters for sub coordinate system and zoomed area using a four-element vector of the form `[left bottom width height]`
 
 ## Star History
 
