@@ -6,7 +6,13 @@ classdef BaseZoom < handle
         Email: iqiukp@outlook.com
     
         -------------------------------------------------------------
-  
+
+        Version 1.5, 6-FEB-2024
+            -- Support for zoom of a specified Axes object.
+            -- Support setting the number of connection lines.
+            -- Support for manual mode.
+            -- Fixed minor bugs.
+
         Version 1.4, 30-MAY-2023
             -- Added support for charts with two y-axes.
             -- Customize parameters using json files.
@@ -31,19 +37,23 @@ classdef BaseZoom < handle
         -------------------------------------------------------------
         
         BSD 3-Clause License
-        Copyright (c) 2023, Kepeng Qiu
+        Copyright (c) 2024, Kepeng Qiu
         All rights reserved.
         
     %}
 
     % main  properties
     properties
+        axesObject
+        subAxesPosition = [];
+        zoomAreaPosition = [];
+        zoomMode = 'interaction';
         subFigure
         mainAxes
         subAxes
         roi
         zoomedArea
-        param
+        parameters
         XAxis
         YAxis
         direction
@@ -65,9 +75,9 @@ classdef BaseZoom < handle
         figureArrow
         % others
         drawFunc
-        axesClass
-        axesDone = 'off'
-        rectangleDone = 'off'
+        axesClassName
+        isAxesDrawn = 'off'
+        isRectangleDrawn = 'off'
         pauseTime = 0.2
         textDisplay = 'on'
     end
@@ -84,44 +94,104 @@ classdef BaseZoom < handle
     end
 
     methods
-        function plot(this)
-            % main steps
-            this.checkVersion;
+
+        function this = BaseZoom(varargin)
+            % Check MATLAB version compatibility
+            if verLessThan('matlab', '9.5') % MATLAB 2018b version is 9.5
+                error('BaseZoom:IncompatibleVersion', 'Please use BaseZoom version 1.4 or below for your MATLAB version.');
+            end
+
+            switch nargin
+                case 0 % No input arguments
+                    this.axesObject = gca;
+                    this.zoomMode = 'interaction';
+                    this.textDisplay = 'on';
+
+                case 1 % One input argument
+                    this.axesObject = varargin{1};
+                    if ~isa(this.axesObject, 'matlab.graphics.axis.Axes')
+                        error('Input must be an Axes object.');
+                    end
+                    this.zoomMode = 'interaction';
+                    this.textDisplay = 'on';
+                    % Check if the object is an image or figure
+                    if ~isempty(imhandles(this.axesObject))
+                        this.axesClassName = 'image';
+                    else
+                        this.axesClassName = 'figure';
+                    end
+                case 2 % Two input arguments
+                    % Check if the first input argument is an Axes object or a position vector
+                    if isa(varargin{1}, 'matlab.graphics.axis.Axes')
+                        this.axesObject = varargin{1};
+                        if ~isempty(imhandles(this.axesObject))
+                            % The object is an image
+                            if ~all(isnumeric(varargin{2}) & numel(varargin{2}) == 4)
+                                error('The second input must be a numeric 4-element vector representing zoomAreaPosition.');
+                            end
+                            this.zoomAreaPosition = varargin{2};
+                            this.zoomMode = 'manual';
+                            this.textDisplay = 'off';
+                        else
+                            error('For two inputs, if the first input is an Axes object, it must be associated with an image.');
+                        end
+                    elseif all(isnumeric(varargin{1}) & numel(varargin{1}) == 4)
+                        this.subAxesPosition = varargin{1};
+                        this.zoomAreaPosition = varargin{2};
+                        this.axesObject = gca;
+                        if ~isempty(imhandles(this.axesObject))
+                            error('For two numeric inputs, the current Axes must not be associated with an image.');
+                        end
+                        this.zoomMode = 'manual';
+                        this.textDisplay = 'off';
+                    else
+                        error('For two inputs, the first input must be either an Axes object associated with an image or a numeric 4-element vector representing subAxesPosition.');
+                    end
+
+                case 3 % Three input arguments
+                    this.axesObject = varargin{1};
+                    this.subAxesPosition = varargin{2};
+                    this.zoomAreaPosition = varargin{3};
+                    if ~isa(this.axesObject, 'matlab.graphics.axis.Axes')
+                        error('The first input must be an Axes object.');
+                    end
+                    if ~isempty(imhandles(this.axesObject))
+                        error('For three inputs, the Axes object must not be associated with an image.');
+                    end
+                    if ~(all(isnumeric(this.subAxesPosition) & numel(this.subAxesPosition) == 4) && ...
+                            all(isnumeric(this.zoomAreaPosition) & numel(this.zoomAreaPosition) == 4))
+                        error('The second and third inputs must be numeric 4-element vectors representing subAxesPosition and zoomAreaPosition, respectively.');
+                    end
+                    this.zoomMode = 'manual';
+                    this.textDisplay = 'off';
+
+                otherwise
+                    error(['Invalid number of input arguments. ',...
+                        'For two inputs, provide either subAxesPosition and zoomAreaPosition, or an Axes object and zoomAreaPosition. ',...
+                        'For three inputs, provide an Axes object, subAxesPosition, and zoomAreaPosition.']);
+            end
+
+
             this.initialize;
             this.loadParameters;
-            switch this.axesClass
-                case 'image'
-                    this.addSubAxes;
-                    this.axesDone = 'off';
-                    fprintf('Use the left mouse button to draw a rectangle.\n')
-                    fprintf('for the zoomed area...\n')
-                    this.addZoomedArea;
-                    this.rectangleDone = 'off';
-                case 'figure'
-                    fprintf('Use the left mouse botton to draw a rectangle.\n')
-                    fprintf('for the sub axes...\n')
-                    this.addSubAxes;
-                    this.axesDone = 'off';
-                    fprintf('Use the left mouse button to draw a rectangle.\n')
-                    fprintf('for the zoomed area...\n')
-                    this.addZoomedArea;
-                    this.rectangleDone = 'off';
-            end
         end
 
-        function checkVersion(this)
-            version_ = version('-release');
-            year_ = str2double(version_(1:4));
-            if year_ < 2016
-                error('ZoomPlot V1.4 is not compatible with the versions lower than R2016a.')
-            end
-            if year_ >= 2017
-                set(findobj(gcf, 'type', 'Legend'), 'AutoUpdate', 'off');
-            end
-            if year_ > 2018 || (year_ == 2018 && version_(5) == 'b')
-                this.drawFunc = 'drawrectangle';
-            else
-                this.drawFunc = 'imrect';
+        function run(this)
+            % main steps
+            switch this.axesClassName
+                case 'image'
+                    this.addSubAxes;
+                    this.isAxesDrawn = 'off';
+                    this.displayZoomInstructions();
+                    this.addZoomedArea;
+                    this.isRectangleDrawn = 'off';
+                case 'figure'
+                    this.displaySubAxesInstructions();
+                    this.addSubAxes;
+                    this.isAxesDrawn = 'off';
+                    this.displayZoomInstructions();
+                    this.addZoomedArea;
+                    this.isRectangleDrawn = 'off';
             end
         end
 
@@ -131,36 +201,19 @@ classdef BaseZoom < handle
             raw = fread(fid,inf);
             str = char(raw');
             fclose(fid);
-            this.param = jsondecode(str);
-            names_ = fieldnames(this.param);
+            this.parameters = jsondecode(str);
+            names_ = fieldnames(this.parameters);
             for i = 1:length(names_)
-                if isfield(this.param.(names_{i}), 'Comments')
-                    this.param.(names_{i}) = rmfield(this.param.(names_{i}), 'Comments');
+                if isfield(this.parameters.(names_{i}), 'Comments')
+                    this.parameters.(names_{i}) = rmfield(this.parameters.(names_{i}), 'Comments');
                 end
             end
         end
 
         function initialize(this)
-            this.mainAxes = gca;
-            this.YAxis.direction = {'left', 'right'};
-            this.YAxis.number = length(this.mainAxes.YAxis);
-            this.XAxis.number = length(this.mainAxes.XAxis);
-            this.XAxis.scale = this.mainAxes.XScale;
-            this.direction = this.mainAxes.YAxisLocation;
-            switch this.YAxis.number
-                case 1
-                    this.YAxis.(this.direction).scale = this.mainAxes.YScale;
-                case 2
-                    for i = 1:2
-                        yyaxis(this.mainAxes, this.YAxis.direction{1, i});
-                        this.YAxis.(this.YAxis.direction{1, i}).scale = this.mainAxes.YScale;
-                        this.YAxis.scale{i} = this.mainAxes.YScale;
-                    end
-                    this.YAxis.scale = cell2mat(this.YAxis.scale);
-                    yyaxis(this.mainAxes, this.direction);
-            end
+            this.mainAxes = this.axesObject;
             if size(imhandles(this.mainAxes),1) ~= 0
-                this.axesClass = 'image';
+                this.axesClassName = 'image';
                 this.CData_ = get(this.mainAxes.Children, 'CData');
                 this.Colormap_ = colormap(gca);
                 if size(this.Colormap_, 1) == 64
@@ -170,12 +223,34 @@ classdef BaseZoom < handle
                 this.vuRatio = this.vPixels/this.uPixels;
                 this.imageDim = length(size(this.CData_));
             else
-                this.axesClass = 'figure';
+                this.axesClassName = 'figure';
             end
+
+            if strcmp(this.axesClassName, 'figure')
+                this.YAxis.direction = {'left', 'right'};
+                this.YAxis.number = length(this.mainAxes.YAxis);
+                this.XAxis.number = length(this.mainAxes.XAxis);
+                this.XAxis.scale = this.mainAxes.XScale;
+                this.direction = this.mainAxes.YAxisLocation;
+                switch this.YAxis.number
+                    case 1
+                        this.YAxis.(this.direction).scale = this.mainAxes.YScale;
+                    case 2
+                        for i = 1:2
+                            yyaxis(this.mainAxes, this.YAxis.direction{1, i});
+                            this.YAxis.(this.YAxis.direction{1, i}).scale = this.mainAxes.YScale;
+                            this.YAxis.scale{i} = this.mainAxes.YScale;
+                        end
+                        this.YAxis.scale = cell2mat(this.YAxis.scale);
+                        yyaxis(this.mainAxes, this.direction);
+                end
+            end
+
+
         end
 
         function addSubAxes(this)
-            switch this.axesClass
+            switch this.axesClassName
                 case 'image'
                     this.subFigure = figure;
                     this.imagePosition(4) = this.imagePosition(3)*this.vuRatio;
@@ -193,112 +268,93 @@ classdef BaseZoom < handle
                     colormap(this.subAxes, [240, 240, 240]/255);
                     axis off
                 case 'figure' %
-                    switch this.drawFunc
-                        case 'drawrectangle'
-                            this.roi = drawrectangle(this.mainAxes);
-                            this.setTheme;
-                            this.creatSubAxes;
-                            set(gcf, 'WindowButtonDownFcn', {@this.clickEvents, 'subAxes'});
-                            addlistener(this.roi, 'MovingROI', @(source, event) ...
-                                this.allEvents(source, event, 'subAxes'));
-                            addlistener(this.roi, 'ROIMoved', @(source, event) ...
-                                this.allEvents(source, event, 'subAxes'));
-                            while strcmp(this.axesDone, 'off')
-                                pause(this.pauseTime);
-                            end
-                        case 'imrect'
-                            this.roi = imrect;
-                            this.setTheme;
-                            func_ = makeConstrainToRectFcn('imrect',...
-                                get(this.mainAxes, 'XLim'), get(this.mainAxes, 'YLim'));
-                            setPositionConstraintFcn(this.roi, func_);
-                            this.creatSubAxes;
-                            addNewPositionCallback(this.roi, @(handle) ...
-                                allEvents(this, this.roi, [], 'subAxes'));
-                            set(gcf, 'WindowButtonDownFcn', {@this.clickEvents, 'subAxes'});
-                            wait(this.roi);
-                            while strcmp(this.axesDone, 'off')
-                                pause(this.pauseTime);
-                            end
+                    if strcmp(this.zoomMode, 'interaction')
+                        this.roi = drawrectangle(this.mainAxes, 'Label', 'SubAxes');
+                        this.setTheme;
+                        this.creatSubAxes;
+                        set(gcf, 'WindowButtonDownFcn', {@this.clickEvents, 'subAxes'});
+                        addlistener(this.roi, 'MovingROI', @(source, event) ...
+                            this.allEvents(source, event, 'subAxes'));
+                        addlistener(this.roi, 'ROIMoved', @(source, event) ...
+                            this.allEvents(source, event, 'subAxes'));
+                        while strcmp(this.isAxesDrawn, 'off')
+                            pause(this.pauseTime);
+                        end
+                    else
+                        this.roi = drawrectangle(this.mainAxes,...
+                            'Position', this.subAxesPosition, 'Label', 'SubAxes');
+                        this.creatSubAxes;
+                        delete(this.roi);
+                        set(this.subAxes, 'Visible', 'on')
+                        this.isAxesDrawn = 'on';
                     end
+                    this.subAxes.Color = this.mainAxes.Color;
+
             end
         end
 
         function addZoomedArea(this)
-            switch this.axesClass
+            switch this.axesClassName
                 case 'image'
-                    switch this.drawFunc
-                        case 'drawrectangle'
-                            this.roi = drawrectangle(this.mainAxes);
-                            this.setTheme;
-                            this.creatSubAxes;
-                            if strcmp(this.param.subAxes.Box, 'on')
-                                this.connectAxesAndBox;
-                            end
-                            set(gcf, 'WindowButtonDownFcn', {@this.clickEvents, 'zoomedArea'});
-                            addlistener(this.roi, 'MovingROI', @(source, event) ...
-                                this.allEvents(source, event, 'zoomedArea'));
-                            addlistener(this.roi, 'ROIMoved', @(source, event) ...
-                                this.allEvents(source, event, 'zoomedArea'));
-                            while strcmp(this.rectangleDone, 'off')
-                                pause(this.pauseTime);
-                            end
-                        case 'imrect'
-                            this.roi = imrect(this.mainAxes);
-                            this.setTheme;
-                            this.creatSubAxes;
-                            func_ = makeConstrainToRectFcn('imrect',...
-                                get(this.mainAxes, 'XLim'), get(this.mainAxes, 'YLim'));
-                            setPositionConstraintFcn(this.roi, func_);
-                            if strcmp(this.param.subAxes.Box, 'on')
-                                this.connectAxesAndBox;
-                            end
-                            addNewPositionCallback(this.roi, @(handle) ...
-                                allEvents(this, this.roi, [], 'zoomedArea'));
-                            set(gcf, 'WindowButtonDownFcn', {@this.clickEvents, 'zoomedArea'});
-                            wait(this.roi);
-                            while strcmp(this.rectangleDone, 'off')
-                                pause(this.pauseTime);
-                            end
+                    if strcmp(this.zoomMode, 'interaction')
+                        this.roi = drawrectangle(this.mainAxes, 'Label', 'ZoomArea');
+                        this.setTheme;
+                        this.creatSubAxes;
+                        if strcmp(this.parameters.subAxes.Box, 'on')
+                            this.connectAxesAndBox;
+                        end
+                        set(gcf, 'WindowButtonDownFcn', {@this.clickEvents, 'zoomedArea'});
+                        addlistener(this.roi, 'MovingROI', @(source, event) ...
+                            this.allEvents(source, event, 'zoomedArea'));
+                        addlistener(this.roi, 'ROIMoved', @(source, event) ...
+                            this.allEvents(source, event, 'zoomedArea'));
+                        while strcmp(this.isRectangleDrawn, 'off')
+                            pause(this.pauseTime);
+                        end
+                    else
+
+                        this.roi = drawrectangle(this.mainAxes,...
+                            'Position', this.zoomAreaPosition, 'Label', 'zoomArea');
+                        this.setTheme;
+                        if strcmp(this.parameters.subAxes.Box, 'on')
+                            this.connectAxesAndBox;
+                        end
+                        this.creatSubAxes;
+                        this.isRectangleDrawn = 'on';
+                        this.createRectangle;
+                        delete(this.roi);
                     end
                     for iArrow = 1:length(this.imageArrow)
                         this.imageArrow{iArrow}.Tag = 'ZoomPlot';
                     end
 
                 case 'figure' %
-                    switch this.drawFunc
-                        case 'drawrectangle'
-                            this.roi = drawrectangle(this.mainAxes);
-                            this.setTheme;
-                            if strcmp(this.param.subAxes.Box, 'on')
-                                this.connectAxesAndBox;
-                            end
-                            this.setSubAxesLim;
-                            set(gcf, 'WindowButtonDownFcn', {@this.clickEvents, 'zoomedArea'});
-                            addlistener(this.roi, 'MovingROI', @(source, event) ...
-                                this.allEvents(source, event, 'zoomedArea'));
-                            addlistener(this.roi, 'ROIMoved', @(source, event) ...
-                                this.allEvents(source, event, 'zoomedArea'));
-                            while strcmp(this.rectangleDone, 'off')
-                                pause(this.pauseTime);
-                            end
-                        case 'imrect'
-                            this.roi = imrect;
-                            this.setTheme;
-                            func_ = makeConstrainToRectFcn('imrect',...
-                                get(this.mainAxes, 'XLim'), get(this.mainAxes, 'YLim'));
-                            setPositionConstraintFcn(this.roi, func_);
-                            if strcmp(this.param.subAxes.Box, 'on')
-                                this.connectAxesAndBox;
-                            end
-                            set(this.subAxes, 'XLim', this.XLimNew, 'YLim', this.YLimNew);
-                            addNewPositionCallback(this.roi, @(handle) ...
-                                allEvents(this, this.roi, [], 'zoomedArea'));
-                            set(gcf, 'WindowButtonDownFcn', {@this.clickEvents, 'zoomedArea'});
-                            wait(this.roi);
-                            while strcmp(this.rectangleDone, 'off')
-                                pause(this.pauseTime);
-                            end
+                    if strcmp(this.zoomMode, 'interaction')
+                        this.roi = drawrectangle(this.mainAxes, 'Label', 'zoomArea');
+                        this.setTheme;
+                        if strcmp(this.parameters.subAxes.Box, 'on')
+                            this.connectAxesAndBox;
+                        end
+                        this.setSubAxesLim;
+                        set(gcf, 'WindowButtonDownFcn', {@this.clickEvents, 'zoomedArea'});
+                        addlistener(this.roi, 'MovingROI', @(source, event) ...
+                            this.allEvents(source, event, 'zoomedArea'));
+                        addlistener(this.roi, 'ROIMoved', @(source, event) ...
+                            this.allEvents(source, event, 'zoomedArea'));
+                        while strcmp(this.isRectangleDrawn, 'off')
+                            pause(this.pauseTime);
+                        end
+                    else
+                        this.roi = drawrectangle(this.mainAxes,...
+                            'Position', this.zoomAreaPosition, 'Label', 'zoomArea');
+                        this.setTheme;
+                        if strcmp(this.parameters.subAxes.Box, 'on')
+                            this.connectAxesAndBox;
+                        end
+                        this.setSubAxesLim;
+                        this.isRectangleDrawn = 'on';
+                        this.createRectangle;
+                        delete(this.roi);
                     end
                     for iArrow = 1:length(this.figureArrow)
                         this.figureArrow{iArrow}.Tag = 'ZoomPlot';
@@ -314,16 +370,16 @@ classdef BaseZoom < handle
                     end
                     delete(this.subAxes);
                     this.creatSubAxes;
-                    this.subAxes.Color = this.param.subAxes.Color;
+                    this.subAxes.Color = this.parameters.subAxes.Color;
                 case 'zoomedArea'
                     if strcmp(this.textDisplay, 'on')
                         fprintf('adjust the zoomed area...\n')
                     end
                     delete(findall(gcf, 'Tag', 'ZoomPlot_'))
-                    if strcmp(this.param.subAxes.Box, 'on')
+                    if strcmp(this.parameters.subAxes.Box, 'on')
                         this.connectAxesAndBox;
                     end
-                    switch this.axesClass
+                    switch this.axesClassName
                         case 'image' %
                             this.creatSubAxes;
                         case 'figure' %
@@ -337,47 +393,47 @@ classdef BaseZoom < handle
                 case 'subAxes'
                     switch get(gcf, 'SelectionType')
                         case 'alt'
-                            this.axesDone = 'on';
+                            this.isAxesDrawn = 'on';
                             set(this.subAxes, 'Visible', 'on');
                             set(gcf, 'WindowButtonDownFcn', []);
                             if strcmp(this.textDisplay, 'on')
                                 fprintf('Complete the adjustment of the sub axes.\n\n');
                             end
                             delete(this.roi);
-                            this.subAxes.Color = this.param.subAxes.Color;
+                            this.subAxes.Color = this.parameters.subAxes.Color;
 
                         case 'normal'
-                            this.axesDone = 'off';
+                            this.isAxesDrawn = 'off';
                             if strcmp(this.textDisplay, 'on')
                                 fprintf('Right-click to stop adjusting.\n');
                             end
-                            this.subAxes.Color = this.param.subAxes.Color;
+                            this.subAxes.Color = this.parameters.subAxes.Color;
 
                         otherwise
-                            this.axesDone = 'off';
+                            this.isAxesDrawn = 'off';
                             if strcmp(this.textDisplay, 'on')
                                 fprintf('Right-click to stop adjusting.\n');
                             end
-                            this.subAxes.Color = this.param.subAxes.Color;
+                            this.subAxes.Color = this.parameters.subAxes.Color;
                     end
 
                 case 'zoomedArea'
                     switch get(gcf, 'SelectionType')
                         case 'alt'
-                            this.rectangleDone = 'on';
-                            this.creatRectangle;
+                            this.isRectangleDrawn = 'on';
+                            this.createRectangle;
                             set(gcf, 'WindowButtonDownFcn', []);
                             delete(this.roi);
                             if strcmp(this.textDisplay, 'on')
                                 fprintf('Complete the adjustment of the zoomed area.\n\n');
                             end
                         case 'normal'
-                            this.rectangleDone = 'off';
+                            this.isRectangleDrawn = 'off';
                             if strcmp(this.textDisplay, 'on')
                                 fprintf('Right-click to stop adjusting.\n');
                             end
                         otherwise
-                            this.rectangleDone = 'off';
+                            this.isRectangleDrawn = 'off';
                             if strcmp(this.textDisplay, 'on')
                                 fprintf('Right-click to stop adjusting.\n');
                             end
@@ -386,7 +442,7 @@ classdef BaseZoom < handle
         end
 
         function creatSubAxes(this)
-            switch this.axesClass
+            switch this.axesClassName
                 case 'image'
                     set(this.subAxes.Children, 'CData', this.newCData);
                     if this.imageDim == 2
@@ -396,17 +452,18 @@ classdef BaseZoom < handle
                     if this.YAxis.number == 1
                         this.subAxes = axes('Position', this.affinePosition,...
                             'XScale', this.XAxis.scale,...
-                            'YScale', this.YAxis.(this.direction).scale);
+                            'YScale', this.YAxis.(this.direction).scale,...
+                            'parent', get(this.mainAxes, 'Parent'));
                         mainChildren = this.getMainChildren;
                         copyobj(mainChildren, this.subAxes);
                         this.subAxes.XLim = this.mainAxes.XLim;
                         hold(this.subAxes, 'on');
-                        set(this.subAxes, this.param.subAxes);
+                        set(this.subAxes, this.parameters.subAxes);
                         set(this.subAxes, 'Visible', 'off');
                     end
                     if this.YAxis.number == 2
                         diret_ = this.YAxis.direction;
-                        this.subAxes = axes('Position', this.affinePosition);
+                        this.subAxes = axes('Position', this.affinePosition, 'parent', get(this.mainAxes, 'Parent'));
                         for i = 1:2
                             yyaxis(this.subAxes, diret_{i});
                             yyaxis(this.mainAxes, diret_{i});
@@ -435,62 +492,117 @@ classdef BaseZoom < handle
                         this.YAxis.K = (Y_to(2)-Y_to(1))/(Y_from(2)-Y_from(1));
                         this.YAxis.b = Y_to(1)-Y_from(1)*this.YAxis.K;
                         hold(this.subAxes, 'on');
-                        set(this.subAxes, this.param.subAxes);
+                        set(this.subAxes, this.parameters.subAxes);
                         set(this.subAxes, 'Visible', 'off');
                     end
             end
         end
 
-        function creatRectangle(this)
-            switch this.axesClass
+        % function createRectangle(this)
+        %     switch this.axesClassName
+        %         case 'image'
+        %             this.zoomedArea = annotation( ...
+        %                 'rectangle', this.imageRectangleEdgePosition, ...
+        %                 'Color', this.parameters.zoomedArea.Color,...
+        %                 'FaceColor', this.parameters.zoomedArea.FaceColor,...
+        %                 'FaceAlpha', this.parameters.zoomedArea.FaceAlpha,...
+        %                 'LineStyle', this.parameters.zoomedArea.LineStyle,...
+        %                 'LineWidth', this.parameters.zoomedArea.LineWidth);
+        %         case 'figure'
+        %             this.zoomedArea = annotation(...
+        %                 'rectangle', this.affinePosition, ...
+        %                 'Color', this.parameters.zoomedArea.Color,...
+        %                 'FaceColor', this.parameters.zoomedArea.FaceColor,...
+        %                 'FaceAlpha', this.parameters.zoomedArea.FaceAlpha,...
+        %                 'LineStyle', this.parameters.zoomedArea.LineStyle,...
+        %                 'LineWidth', this.parameters.zoomedArea.LineWidth);
+        %     end
+        % end
+
+
+        function createRectangle(this)
+            % Determine rectangle position based on axes class
+            switch this.axesClassName
                 case 'image'
-                    this.zoomedArea = annotation( ...
-                        'rectangle', this.imageRectangleEdgePosition, ...
-                        'Color', this.param.zoomedArea.Color,...
-                        'FaceColor', this.param.zoomedArea.FaceColor,...
-                        'FaceAlpha', this.param.zoomedArea.FaceAlpha,...
-                        'LineStyle', this.param.zoomedArea.LineStyle,...
-                        'LineWidth', this.param.zoomedArea.LineWidth);
+                    position = this.imageRectangleEdgePosition;
                 case 'figure'
-                    this.zoomedArea = annotation(...
-                        'rectangle', this.affinePosition, ...
-                        'Color', this.param.zoomedArea.Color,...
-                        'FaceColor', this.param.zoomedArea.FaceColor,...
-                        'FaceAlpha', this.param.zoomedArea.FaceAlpha,...
-                        'LineStyle', this.param.zoomedArea.LineStyle,...
-                        'LineWidth', this.param.zoomedArea.LineWidth);
+                    position = this.affinePosition;
+            end
+
+            % Create the rectangle annotation with common properties
+            this.zoomedArea = annotation('rectangle', position, ...
+                'Color', this.parameters.zoomedArea.Color, ...
+                'FaceColor', this.parameters.zoomedArea.FaceColor, ...
+                'FaceAlpha', this.parameters.zoomedArea.FaceAlpha, ...
+                'LineStyle', this.parameters.zoomedArea.LineStyle, ...
+                'LineWidth', this.parameters.zoomedArea.LineWidth);
+        end
+
+
+        % function mappingParams = computeMappingParams(this)
+        %     switch this.XAxis.scale
+        %         case 'linear'
+        %             rangeXLim = this.mainAxes.XLim(1, 2)-this.mainAxes.XLim(1, 1);
+        %         case 'log'
+        %             rangeXLim = log10(this.mainAxes.XLim(1, 2))-log10(this.mainAxes.XLim(1, 1));
+        %     end
+        %     map_k_x = rangeXLim/this.mainAxes.Position(3);
+        %     switch this.YAxis.(this.direction).scale
+        %         case 'linear'
+        %             rangeYLim = this.mainAxes.YLim(1, 2)-this.mainAxes.YLim(1, 1);
+        %         case 'log'
+        %             rangeYLim = log10(this.mainAxes.YLim(1, 2))-log10(this.mainAxes.YLim(1, 1));
+        %     end
+        %     map_k_y = rangeYLim/this.mainAxes.Position(4);
+        %     switch this.XAxis.scale
+        %         case 'linear'
+        %             map_b_x = this.mainAxes.XLim(1)-this.mainAxes.Position(1)*map_k_x;
+        %         case 'log'
+        %             map_b_x = log10(this.mainAxes.XLim(1))-this.mainAxes.Position(1)*map_k_x;
+        %     end
+        %     switch this.YAxis.(this.direction).scale
+        %         case 'linear'
+        %             map_b_y = this.mainAxes.YLim(1)-this.mainAxes.Position(2)*map_k_y;
+        %         case 'log'
+        %             map_b_y = log10(this.mainAxes.YLim(1))-this.mainAxes.Position(2)*map_k_y;
+        %     end
+        %     mappingParams = [map_k_x, map_b_x; map_k_y, map_b_y];
+        % end
+
+        function mappingParams = computeMappingParams(this)
+            % Compute the mapping parameters for both axes
+            [map_k_x, map_b_x] = this.computeAxisMappingParams(this.XAxis.scale, ...
+                this.mainAxes.XLim, ...
+                this.mainAxes.Position(1), ...
+                this.mainAxes.Position(3));
+            [map_k_y, map_b_y] = this.computeAxisMappingParams(this.YAxis.(this.direction).scale, ...
+                this.mainAxes.YLim, ...
+                this.mainAxes.Position(2), ...
+                this.mainAxes.Position(4));
+            % Construct the mapping parameters matrix
+            mappingParams = [map_k_x, map_b_x; map_k_y, map_b_y];
+        end
+
+        function [map_k, map_b] = computeAxisMappingParams(~, scale, axesLim, pos, size)
+            % Compute mapping parameters based on the scale (linear or log)
+            switch scale
+                case 'linear'
+                    rangeLim = axesLim(2) - axesLim(1);
+                case 'log'
+                    rangeLim = log10(axesLim(2)) - log10(axesLim(1));
+                otherwise
+                    error('BaseZoom:InvalidScale', 'Unsupported axis scale.');
+            end
+            % Compute the scale factor and offset for mapping
+            map_k = rangeLim / size;
+            switch scale
+                case 'linear'
+                    map_b = axesLim(1) - pos * map_k;
+                case 'log'
+                    map_b = log10(axesLim(1)) - pos * map_k;
             end
         end
 
-        function mappingParams = computeMappingParams(this)
-            switch this.XAxis.scale
-                case 'linear'
-                    rangeXLim = this.mainAxes.XLim(1, 2)-this.mainAxes.XLim(1, 1);
-                case 'log'
-                    rangeXLim = log10(this.mainAxes.XLim(1, 2))-log10(this.mainAxes.XLim(1, 1));
-            end
-            map_k_x = rangeXLim/this.mainAxes.Position(3);
-            switch this.YAxis.(this.direction).scale
-                case 'linear'
-                    rangeYLim = this.mainAxes.YLim(1, 2)-this.mainAxes.YLim(1, 1);
-                case 'log'
-                    rangeYLim = log10(this.mainAxes.YLim(1, 2))-log10(this.mainAxes.YLim(1, 1));
-            end
-            map_k_y = rangeYLim/this.mainAxes.Position(4);
-            switch this.XAxis.scale
-                case 'linear'
-                    map_b_x = this.mainAxes.XLim(1)-this.mainAxes.Position(1)*map_k_x;
-                case 'log'
-                    map_b_x = log10(this.mainAxes.XLim(1))-this.mainAxes.Position(1)*map_k_x;
-            end
-            switch this.YAxis.(this.direction).scale
-                case 'linear'
-                    map_b_y = this.mainAxes.YLim(1)-this.mainAxes.Position(2)*map_k_y;
-                case 'log'
-                    map_b_y = log10(this.mainAxes.YLim(1))-this.mainAxes.Position(2)*map_k_y;
-            end
-            mappingParams = [map_k_x, map_b_x; map_k_y, map_b_y];
-        end
 
         function connectAxesAndBox(this)
             % insert lines between the inserted axes and rectangle
@@ -498,17 +610,11 @@ classdef BaseZoom < handle
             %   Rectangle        subAxes
             %    2----1          2----1
             %    3----4          3----4
-
-            switch this.axesClass
+            switch this.axesClassName
                 case 'image' %
                     uPixelsAll = this.uPixels/this.mainAxes.Position(3);
                     vPixelsAll = this.vPixels/this.mainAxes.Position(4);
-                    switch this.drawFunc
-                        case 'drawrectangle'
-                            Position_ = this.roi.Position;
-                        case 'imrect'
-                            Position_ = getPosition(this.roi);
-                    end
+                    Position_ = this.roi.Position;
                     this.imageRectangleEdgePosition(1) = Position_(1)/uPixelsAll+this.mainAxes.Position(1);
                     this.imageRectangleEdgePosition(2) = (this.vPixels-Position_(2)-Position_(4))/...
                         vPixelsAll+this.subAxes.Position(2);
@@ -521,15 +627,15 @@ classdef BaseZoom < handle
                     annotationPosY_1(2) = this.subAxes.Position(2);
                     this.imageArrow{1} = annotation(gcf, 'doublearrow',...
                         annotationPosX_1, annotationPosY_1,...
-                        'Color', this.param.connection.LineColor,...
-                        'LineWidth', this.param.connection.LineWidth,...
-                        'LineStyle', this.param.connection.LineStyle,...
-                        'Head1Style', this.param.connection.StartHeadStyle,...
-                        'Head1Length', this.param.connection.StartHeadLength,...
-                        'Head1Width', this.param.connection.StartHeadWidth,...
-                        'Head2Style', this.param.connection.EndHeadStyle,...
-                        'Head2Length', this.param.connection.EndHeadLength,...
-                        'Head2Width', this.param.connection.EndHeadWidth,...
+                        'Color', this.parameters.connection.LineColor,...
+                        'LineWidth', this.parameters.connection.LineWidth,...
+                        'LineStyle', this.parameters.connection.LineStyle,...
+                        'Head1Style', this.parameters.connection.StartHeadStyle,...
+                        'Head1Length', this.parameters.connection.StartHeadLength,...
+                        'Head1Width', this.parameters.connection.StartHeadWidth,...
+                        'Head2Style', this.parameters.connection.EndHeadStyle,...
+                        'Head2Length', this.parameters.connection.EndHeadLength,...
+                        'Head2Width', this.parameters.connection.EndHeadWidth,...
                         'Tag', 'ZoomPlot_');
                     % annotation position 2
                     annotationPosX_2(1) = this.imageRectangleEdgePosition(1)+this.imageRectangleEdgePosition(3);
@@ -538,15 +644,15 @@ classdef BaseZoom < handle
                     annotationPosY_2(2) = this.subAxes.Position(2)+this.subAxes.Position(4);
                     this.imageArrow{2} = annotation(gcf, 'doublearrow',...
                         annotationPosX_2, annotationPosY_2,...
-                        'Color', this.param.connection.LineColor,...
-                        'LineWidth', this.param.connection.LineWidth,...
-                        'LineStyle', this.param.connection.LineStyle,...
-                        'Head1Style', this.param.connection.StartHeadStyle,...
-                        'Head1Length', this.param.connection.StartHeadLength,...
-                        'Head1Width', this.param.connection.StartHeadWidth,...
-                        'Head2Style', this.param.connection.EndHeadStyle,...
-                        'Head2Length', this.param.connection.EndHeadLength,...
-                        'Head2Width', this.param.connection.EndHeadWidth,...
+                        'Color', this.parameters.connection.LineColor,...
+                        'LineWidth', this.parameters.connection.LineWidth,...
+                        'LineStyle', this.parameters.connection.LineStyle,...
+                        'Head1Style', this.parameters.connection.StartHeadStyle,...
+                        'Head1Length', this.parameters.connection.StartHeadLength,...
+                        'Head1Width', this.parameters.connection.StartHeadWidth,...
+                        'Head2Style', this.parameters.connection.EndHeadStyle,...
+                        'Head2Length', this.parameters.connection.EndHeadLength,...
+                        'Head2Width', this.parameters.connection.EndHeadWidth,...
                         'Tag', 'ZoomPlot_');
                 case 'figure'
                     % real coordinates of the inserted rectangle and axes
@@ -554,25 +660,36 @@ classdef BaseZoom < handle
                     % get the line direction
                     this.getLineDirection;
                     % insert lines
-                    numLine = size(this.lineDirection, 1);
-                    for i = 1:numLine
-                        tmp1 = [this.figureRectangleEdgePosition(this.lineDirection(i, 1), 1),...
-                            this.figureRectangleEdgePosition(this.lineDirection(i, 1), 2)];
-                        tmp2 = [this.axesPosition(this.lineDirection(i, 2), 1),...
-                            this.axesPosition(this.lineDirection(i, 2), 2)];
+                    % numLine = size(this.lineDirection, 1);
+                    switch this.parameters.connection.LineNumber
+                        case 0
+
+                        case 1
+                            lineDirection_ = this.lineDirection(end, :);
+                        case 2
+                            lineDirection_ = this.lineDirection(1:2, :);
+                        otherwise
+                            error('The LineNumber must be 0 or 1 or 2.')
+                    end
+
+                    for i = 1:this.parameters.connection.LineNumber
+                        tmp1 = [this.figureRectangleEdgePosition(lineDirection_(i, 1), 1),...
+                            this.figureRectangleEdgePosition(lineDirection_(i, 1), 2)];
+                        tmp2 = [this.axesPosition(lineDirection_(i, 2), 1),...
+                            this.axesPosition(lineDirection_(i, 2), 2)];
                         pos1 = this.transformCoordinate(tmp1, 'a2n');
                         pos2 = this.transformCoordinate(tmp2, 'a2n');
                         this.figureArrow{i} = annotation(gcf, 'doublearrow',...
                             [pos1(1, 1), pos2(1, 1)], [pos1(1, 2), pos2(1, 2)],...
-                            'Color', this.param.connection.LineColor,...
-                            'LineWidth', this.param.connection.LineWidth,...
-                            'LineStyle', this.param.connection.LineStyle,...
-                            'Head1Style', this.param.connection.StartHeadStyle,...
-                            'Head1Length', this.param.connection.StartHeadLength,...
-                            'Head1Width', this.param.connection.StartHeadWidth,...
-                            'Head2Style', this.param.connection.EndHeadStyle,...
-                            'Head2Length', this.param.connection.EndHeadLength,...
-                            'Head2Width', this.param.connection.EndHeadWidth,...
+                            'Color', this.parameters.connection.LineColor,...
+                            'LineWidth', this.parameters.connection.LineWidth,...
+                            'LineStyle', this.parameters.connection.LineStyle,...
+                            'Head1Style', this.parameters.connection.StartHeadStyle,...
+                            'Head1Length', this.parameters.connection.StartHeadLength,...
+                            'Head1Width', this.parameters.connection.StartHeadWidth,...
+                            'Head2Style', this.parameters.connection.EndHeadStyle,...
+                            'Head2Length', this.parameters.connection.EndHeadLength,...
+                            'Head2Width', this.parameters.connection.EndHeadWidth,...
                             'Tag', 'ZoomPlot_');
                     end
             end
@@ -607,46 +724,46 @@ classdef BaseZoom < handle
             % left-upper
             if (this.figureRectangleEdgePosition(4, 1) < this.axesPosition(1, 1) &&...
                     this.figureRectangleEdgePosition(4, 2) > this.axesPosition(2, 2))
-                this.lineDirection = [3, 3; 1, 1];
+                this.lineDirection = [3, 3; 1, 1; 4, 2];
             end
             % middle-upper
             if (this.figureRectangleEdgePosition(4, 1) > this.axesPosition(2, 1) &&...
                     this.figureRectangleEdgePosition(4, 2) > this.axesPosition(2, 2)) &&...
                     this.figureRectangleEdgePosition(3, 1) < this.axesPosition(1, 1)
-                this.lineDirection = [4, 1; 3, 2];
+                this.lineDirection = [4, 1; 3, 2; 4 ,1];
             end
             % right-upper
             if (this.figureRectangleEdgePosition(3, 1) > this.axesPosition(1, 1) &&...
                     this.figureRectangleEdgePosition(3, 2) > this.axesPosition(1, 2))
-                this.lineDirection = [2, 2; 4, 4];
+                this.lineDirection = [2, 2; 4, 4; 3, 1];
             end
             % right-middle
             if (this.figureRectangleEdgePosition(3, 1) > this.axesPosition(1, 1) &&...
                     this.figureRectangleEdgePosition(3, 2) < this.axesPosition(1, 2)) &&...
                     this.figureRectangleEdgePosition(2, 2) > this.axesPosition(4, 2)
-                this.lineDirection = [2, 1; 3, 4];
+                this.lineDirection = [2, 1; 3, 4; 3, 1];
             end
             % right-down
             if (this.figureRectangleEdgePosition(2, 1) > this.axesPosition(4, 1) &&...
                     this.figureRectangleEdgePosition(2, 2) < this.axesPosition(4, 2))
-                this.lineDirection = [1, 1; 3, 3];
+                this.lineDirection = [1, 1; 3, 3; 4, 2];
             end
             % down-middle
             if (this.figureRectangleEdgePosition(1, 1) > this.axesPosition(3, 1) &&...
                     this.figureRectangleEdgePosition(1, 2) < this.axesPosition(3, 2) &&...
                     this.figureRectangleEdgePosition(2, 1) < this.axesPosition(4, 1))
-                this.lineDirection = [2, 3; 1, 4];
+                this.lineDirection = [2, 3; 1, 4; 2, 4];
             end
             % left-down
             if (this.figureRectangleEdgePosition(1, 1) < this.axesPosition(3, 1) &&...
                     this.figureRectangleEdgePosition(1, 2) < this.axesPosition(3, 2))
-                this.lineDirection = [2, 2; 4, 4];
+                this.lineDirection = [2, 2; 4, 4; 3, 1];
             end
             % left-middle
             if (this.figureRectangleEdgePosition(4, 1) <this.axesPosition(2, 1) &&...
                     this.figureRectangleEdgePosition(4, 2) < this.axesPosition(2, 2)) &&...
                     this.figureRectangleEdgePosition(1, 2) > this.axesPosition(3, 2)
-                this.lineDirection = [1, 2; 4, 3];
+                this.lineDirection = [1, 2; 4, 3; 1, 3];
             end
         end
 
@@ -694,36 +811,13 @@ classdef BaseZoom < handle
 
         function setTheme(this)
             % set the theme of the dynamic rectangle
-            switch this.drawFunc
-                case 'drawrectangle'
-                    try
-                        this.roi.MarkerSize = this.param.dynamicRect.MarkerSize;
-                    catch
-                    end
-                    this.roi.Color = this.param.dynamicRect.FaceColor;
-                    this.roi.FaceAlpha = this.param.dynamicRect.FaceAspect;
-                    this.roi.LineWidth = this.param.dynamicRect.LineWidth;
-                case 'imrect'
-                    children_ = get(findobj(gca, 'type', 'hggroup'), 'children');
-                    % 8 angles
-                    for i = [1:4, 6:2:12]
-                        children_(i).LineWidth = this.param.dynamicRect.LineWidth*0.6;
-                        children_(i).Color = this.param.dynamicRect.LineColor;
-                        children_(i).Marker = this.param.dynamicRect.Marker;
-                        children_(i).MarkerSize = this.param.dynamicRect.MarkerSize;
-                        children_(i).MarkerEdgeColor =this.param.dynamicRect.EdgeColor;
-                        children_(i).MarkerFaceColor = this.param.dynamicRect.FaceColor;
-                    end
-                    % 4 lines
-                    for i = 5:2:11
-                        children_(i).Color = this.param.dynamicRect.FaceColor;
-                        children_(i).LineWidth = this.param.dynamicRect.LineWidth;
-                        children_(i).Marker = 'none';
-                    end
-                    % dynamic rectangle
-                    children_(13).FaceAlpha = this.param.dynamicRect.FaceAspect;
-                    children_(13).FaceColor = this.param.dynamicRect.FaceColor;
+            try
+                this.roi.MarkerSize = this.parameters.dynamicRect.MarkerSize;
+            catch
             end
+            this.roi.Color = this.parameters.dynamicRect.FaceColor;
+            this.roi.FaceAlpha = this.parameters.dynamicRect.FaceAspect;
+            this.roi.LineWidth = this.parameters.dynamicRect.LineWidth;
         end
 
         function coordinate = transformCoordinate(this, coordinate, type)
@@ -769,14 +863,30 @@ classdef BaseZoom < handle
             end
         end
 
+
+
+        function throwError(~, message)
+            error('BaseZoom:InvalidInput', message);
+        end
+
+        function displaySubAxesInstructions(this)
+            if strcmp(this.textDisplay, 'on')
+                fprintf('Use the left mouse button to draw a rectangle.\n');
+                fprintf('for the sub axes...\n');
+            end
+        end
+
+        function displayZoomInstructions(this)
+            if strcmp(this.textDisplay, 'on')
+                fprintf('Use the left mouse button to draw a rectangle.\n');
+                fprintf('for the zoomed area...\n');
+            end
+        end
+
+
         % dependent properties
         function dynamicPosition = get.dynamicPosition(this)
-            switch this.drawFunc
-                case 'drawrectangle'
-                    dynamicPosition = this.roi.Position;
-                case 'imrect'
-                    dynamicPosition = getPosition(this.roi);
-            end
+            dynamicPosition = this.roi.Position;
         end
 
         % dependent properties
@@ -802,13 +912,7 @@ classdef BaseZoom < handle
 
         % dependent properties
         function newCData_ = get.newCData_(this)
-            switch this.drawFunc
-                case 'drawrectangle'
-                    Position_ = this.roi.Position;
-                case 'imrect'
-                    Position_ = getPosition(this.roi);
-            end
-            newCData_ = imcrop(this.CData_,this.Colormap_, Position_);
+            newCData_ = imcrop(this.CData_,this.Colormap_, this.roi.Position);
         end
 
         % dependent properties
