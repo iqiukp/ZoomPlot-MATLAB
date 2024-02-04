@@ -5,7 +5,7 @@
 <h3 align="center">ZoomPlot</h3>
 
 <p align="center">MATLAB Code for Interactive Magnification of Customized Regions.</p>
-<p align="center">Version 1.3, 17-JAN-2022</p>
+<p align="center">Version 1.4, 30-MAY-2023</p>
 <p align="center">Email: iqiukp@outlook.com</p>
 
 <div align=center>
@@ -30,12 +30,12 @@
 
 ## ⚠️ Requirements
 
-- R2014b and later releases
+- R2016a and later releases
 - Image Processing Toolbox
 
 ## 👉 How to use
 
-1. Add `BaseZoom.m` file to MATLAB search path or current working directory
+1. Add `BaseZoom.m` and `parameters.json` to MATLAB search path or current working directory
 2. After completing the basic drawing, enter the following two lines of code in the command line window or your m-file: 
 ```MATLAB
 % add a zoomed zone
@@ -56,122 +56,96 @@ zp.plot;
 
 Multiple types of image are supported for interactive magnification of customized regions in the `ZoomPlot`.
 <p align="center">
-  <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/image-2.gif">
+  <img src="https://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/image_group.gif" width = "60%">
 </p>
-<p align="center">
-  <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/image-1.gif">
-</p>
-<p align="center">
-  <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/image-3.gif">
-</p>
-
 
 ## 👉 Examples for figure class
 
 Multiple zoomed zones are supported for figure class.
 <p align="center">
-  <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/figure-4.gif">
+  <img src="https://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/figure_group.gif" width = "60%">
 </p>
+
+## 👉 Customize parameters using json files
+
+ZoomPlot's configuration parameters are stored in `parameters.json` and have the following default values: 
+```json
+{
+    "subAxes": 
+        {
+            "Color": "none",
+            "LineWidth": 1.2,
+            "XGrid": "off",
+            "YGrid": "off",
+            "ZGrid": "off",
+            "GridAlpha": 0.15,
+            "GridColor": [0.15, 0.15, 0.15],
+            "GridLineStyle": "-",
+            "Box": "on",
+            "TickDir": "in",
+            "Comments": "theme of the sub axes"
+        },
+
+    "zoomedArea": 
+        {
+            "Color": "k",
+            "FaceColor": "none",
+            "FaceAlpha": 0,
+            "LineStyle": "-",
+            "LineWidth": 1.5,
+            "Comments": "theme of the zoomed area"
+        },
+
+     "dynamicRect": 
+        {
+            "LineColor": [0, 0.4471, 0.7412],
+            "LineWidth": 2,
+            "Marker": "s",
+            "MarkerSize": 9,
+            "FaceColor": [0, 0.4471, 0.7412],
+            "FaceAspect": 0.3,
+            "EdgeColor": "k",
+            "Comments": "theme of the zoomed area"
+        },
+
+     "connection": 
+        {
+            "LineColor": "k",
+            "LineWidth": 1.5,
+            "LineStyle": ":",
+            "StartHeadStyle": "ellipse",
+            "StartHeadLength": 3,
+            "StartHeadWidth": 3,
+            "EndHeadStyle": "cback2",
+            "EndHeadLength": 7,
+            "EndHeadWidth": 7,
+            "Comments": "theme of the zoomed area"
+        }
+
+}
+```
+As you can see, there are four sections of configuration parameters:
+
+- `subAxes` (sub coordinate system)
+- `zoomedArea` (zoomed area)
+- `dynamicRect` (dynamic rectangle in the adjustment process)
+- `connection` (the line connecting the sub coordinate system and the zoomed area)
+
+For example, the border of the zoomed area is changed to red, and the line width is changed to 3:
 <p align="center">
-  <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/figure-2_1.gif">
+  <img src="https://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/change_0001.png" width = "60%">
 </p>
 
-## 👉 How to customize the theme of the sub-coordinate system
-
-Just modify the properties of the BaseZoom class file. The default properties are: 
-```MATLAB
-    % theme of inserted axes (sub-axes)
-    properties
-        subAxesBox = 'on'
-        subAxesinsertedLineWidth = 1.2
-        subAxesTickDirection = 'in'
-        subAxesBackgroundColor = 'w'
-    end
-```
-For example, remove the border of the sub-coordinate system and set the line width to 3: 
-```MATLAB
-    % theme of inserted axes (sub-axes)
-    properties
-        subAxesBox = 'off'
-        subAxesinsertedLineWidth = 3
-        subAxesTickDirection = 'in'
-        subAxesBackgroundColor = 'w'
-    end
-```
+Another example, the color of the connecting line is changed to blue, the shape of the end arrow is changed to 'ellipse', and the line width is changed to 5:
 <p align="center">
-  <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/change_1.png">
+  <img src="https://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/change_0002.png" width = "60%">
 </p>
 
-## 👉 How to customize the theme of the zoomed zone
+## TODO
 
-Just modify the properties of the BaseZoom class file. The default properties are: 
-```MATLAB
-    % theme of the zoomed zone (figures)
-    properties
-        rectangleColor = 'k'
-        rectangleFaceColor = 'none'
-        rectangleFaceAlpha = 0
-        rectangleLineStyle = '-'
-        rectangleLineWidth = 1.2
-        rectangleInteractionsAllowed = 'none'
-    end
-```
-For example, set the line color to red and the line width to 2: 
-```MATLAB
-    % theme of the zoomed zone (figures)
-    properties
-        rectangleColor = 'r'
-        rectangleFaceColor = 'none'
-        rectangleFaceAlpha = 0
-        rectangleLineStyle = '-'
-        rectangleLineWidth = 2
-        rectangleInteractionsAllowed = 'none'
-    end
-```
+- [ ] Support for 3-D plots
+- [ ] Support for input of position parameters for sub coordinate system and zoomed area using a four-element vector of the form `[left bottom width height]`
 
-<p align="center">
-  <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/change_2.png">
-</p>
+## Star History
 
-## 👉 How to customize the theme of the connected lines
-
-Just modify the properties of the BaseZoom class file. The default properties are: 
-```MATLAB
-    % theme of the connected lines (figures)
-    properties
-        % setting of lines between arrows
-        figureConnectedLineStyle = ':'
-        figureConnectedLineColor = 'k'
-        figureConnectedLineWidth = 1.2
-        % setting of start arrow
-        figureConnectedLineStartHeadStyle = 'ellipse' % shape of start arrow
-        figureConnectedLineStartHeadLength = 3
-        figureConnectedLineStartHeadWidth = 3
-        % setting of end arrow
-        figureConnectedLineEndHeadStyle = 'cback2' % shape of ending arrow
-        figureConnectedLineEndHeadLength = 7
-        figureConnectedLineEndHeadWidth = 7
-    end
-```
-For example, set the shape of ending arrow to 'ellipse' and the line color to 'b':
-
-```MATLAB
-    % theme of the connected lines (figures)
-    properties
-        % setting of lines between arrows
-        figureConnectedLineStyle = ':'
-        figureConnectedLineColor = 'r'
-        figureConnectedLineWidth = 1.2
-        % setting of start arrow
-        figureConnectedLineStartHeadStyle = 'ellipse' % shape of start arrow
-        figureConnectedLineStartHeadLength = 3
-        figureConnectedLineStartHeadWidth = 3
-        % setting of end arrow
-        figureConnectedLineEndHeadStyle = 'ellipse' % shape of ending arrow
-        figureConnectedLineEndHeadLength = 7
-        figureConnectedLineEndHeadWidth = 7
-    end
-```
-<p align="center">
-  <img src="http://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/change_3.png">
-</p>
+[![Star History Chart](https://api.star-history.com/svg?repos=iqiukp/ZoomPlot-MATLAB)](https://star-history.com/#iqiukp/ZoomPlot-MATLAB)
