@@ -7,7 +7,7 @@ classdef BaseZoom < handle
     
         -------------------------------------------------------------
 
-        Version 1.5, 6-FEB-2024
+        Version 1.5.1, 5-FEB-2024
             -- Support for zoom of a specified Axes object.
             -- Support setting the number of connection lines.
             -- Support for manual mode.
@@ -170,8 +170,6 @@ classdef BaseZoom < handle
                         'For two inputs, provide either subAxesPosition and zoomAreaPosition, or an Axes object and zoomAreaPosition. ',...
                         'For three inputs, provide an Axes object, subAxesPosition, and zoomAreaPosition.']);
             end
-
-
             this.initialize;
             this.loadParameters;
         end
@@ -245,8 +243,6 @@ classdef BaseZoom < handle
                         yyaxis(this.mainAxes, this.direction);
                 end
             end
-
-
         end
 
         function addSubAxes(this)
@@ -288,8 +284,7 @@ classdef BaseZoom < handle
                         set(this.subAxes, 'Visible', 'on')
                         this.isAxesDrawn = 'on';
                     end
-                    this.subAxes.Color = this.mainAxes.Color;
-
+                    % this.subAxes.Color = this.mainAxes.Color;
             end
         end
 
@@ -498,28 +493,6 @@ classdef BaseZoom < handle
             end
         end
 
-        % function createRectangle(this)
-        %     switch this.axesClassName
-        %         case 'image'
-        %             this.zoomedArea = annotation( ...
-        %                 'rectangle', this.imageRectangleEdgePosition, ...
-        %                 'Color', this.parameters.zoomedArea.Color,...
-        %                 'FaceColor', this.parameters.zoomedArea.FaceColor,...
-        %                 'FaceAlpha', this.parameters.zoomedArea.FaceAlpha,...
-        %                 'LineStyle', this.parameters.zoomedArea.LineStyle,...
-        %                 'LineWidth', this.parameters.zoomedArea.LineWidth);
-        %         case 'figure'
-        %             this.zoomedArea = annotation(...
-        %                 'rectangle', this.affinePosition, ...
-        %                 'Color', this.parameters.zoomedArea.Color,...
-        %                 'FaceColor', this.parameters.zoomedArea.FaceColor,...
-        %                 'FaceAlpha', this.parameters.zoomedArea.FaceAlpha,...
-        %                 'LineStyle', this.parameters.zoomedArea.LineStyle,...
-        %                 'LineWidth', this.parameters.zoomedArea.LineWidth);
-        %     end
-        % end
-
-
         function createRectangle(this)
             % Determine rectangle position based on axes class
             switch this.axesClassName
@@ -537,37 +510,6 @@ classdef BaseZoom < handle
                 'LineStyle', this.parameters.zoomedArea.LineStyle, ...
                 'LineWidth', this.parameters.zoomedArea.LineWidth);
         end
-
-
-        % function mappingParams = computeMappingParams(this)
-        %     switch this.XAxis.scale
-        %         case 'linear'
-        %             rangeXLim = this.mainAxes.XLim(1, 2)-this.mainAxes.XLim(1, 1);
-        %         case 'log'
-        %             rangeXLim = log10(this.mainAxes.XLim(1, 2))-log10(this.mainAxes.XLim(1, 1));
-        %     end
-        %     map_k_x = rangeXLim/this.mainAxes.Position(3);
-        %     switch this.YAxis.(this.direction).scale
-        %         case 'linear'
-        %             rangeYLim = this.mainAxes.YLim(1, 2)-this.mainAxes.YLim(1, 1);
-        %         case 'log'
-        %             rangeYLim = log10(this.mainAxes.YLim(1, 2))-log10(this.mainAxes.YLim(1, 1));
-        %     end
-        %     map_k_y = rangeYLim/this.mainAxes.Position(4);
-        %     switch this.XAxis.scale
-        %         case 'linear'
-        %             map_b_x = this.mainAxes.XLim(1)-this.mainAxes.Position(1)*map_k_x;
-        %         case 'log'
-        %             map_b_x = log10(this.mainAxes.XLim(1))-this.mainAxes.Position(1)*map_k_x;
-        %     end
-        %     switch this.YAxis.(this.direction).scale
-        %         case 'linear'
-        %             map_b_y = this.mainAxes.YLim(1)-this.mainAxes.Position(2)*map_k_y;
-        %         case 'log'
-        %             map_b_y = log10(this.mainAxes.YLim(1))-this.mainAxes.Position(2)*map_k_y;
-        %     end
-        %     mappingParams = [map_k_x, map_b_x; map_k_y, map_b_y];
-        % end
 
         function mappingParams = computeMappingParams(this)
             % Compute the mapping parameters for both axes
@@ -602,7 +544,6 @@ classdef BaseZoom < handle
                     map_b = log10(axesLim(1)) - pos * map_k;
             end
         end
-
 
         function connectAxesAndBox(this)
             % insert lines between the inserted axes and rectangle
@@ -863,8 +804,6 @@ classdef BaseZoom < handle
             end
         end
 
-
-
         function throwError(~, message)
             error('BaseZoom:InvalidInput', message);
         end
@@ -882,7 +821,6 @@ classdef BaseZoom < handle
                 fprintf('for the zoomed area...\n');
             end
         end
-
 
         % dependent properties
         function dynamicPosition = get.dynamicPosition(this)
