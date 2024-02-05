@@ -5,7 +5,7 @@
 <h3 align="center">ZoomPlot</h3>
 
 <p align="center">MATLAB Code for Interactive Magnification of Customized Regions.</p>
-<p align="center">Version 1.5, 6-FEB-2024</p>
+<p align="center">Version 1.5.1, 5-FEB-2024</p>
 <p align="center">Email: iqiukp@outlook.com</p>
 
 <div align=center>
@@ -26,7 +26,7 @@
 - Interactive plotting
 - Support for image and figure classes
 - Support for multiple zoomed zones
-- Custom settings of parameters and themes 
+- Custom settings of parameters and themes
 
 ## ⚠️ Requirements
 
@@ -40,20 +40,21 @@
 ```MATLAB
 % add a zoomed zone
 zp = BaseZoom();
-zp.plot;
+zp.run;
 ```
 
-*if multiple zoomed zones are required, for example, 3 zoomed zones, the code are as follows:*
+*if multiple zoomed zones are required, for example, 3 zoomed zones, the code is as follows:*
 ```MATLAB
 % add 3 zoomed zones
 zp = BaseZoom();
-zp.plot;
-zp.plot;
-zp.plot;
+zp.run;
+zp.run;
+zp.run;
 ```
+⚠️⚠️⚠️ For More details please see the `manual.pdf`.
 
 ## ✨ About `manual.pdf`:
-The `manual.pdf` file is the official user manual for the ZoomPlot MATLAB code. It provides users with detailed instructions on how to use the code, including the syntax, descriptions, example code, and requirements to run the ZoomPlot for interactive magnification of plots and images within MATLAB.
+The `manual.pdf` file is the official user manual for the ZoomPlot MATLAB code. It provides users with detailed instructions on using the code, including the syntax, descriptions, example code, and requirements to run the ZoomPlot for interactive magnification of plots and images within MATLAB.
 
 - Introduction
 - Syntax
@@ -74,6 +75,7 @@ The `manual.pdf` file is the official user manual for the ZoomPlot MATLAB code. 
   - Zoomed Area Theme
   - Dynamic Rectangle Theme
   - Connection Lines Theme
+  - More Parameter Configuration
     
 ## 👉 Examples for image class
 
@@ -87,17 +89,6 @@ Multiple types of image are supported for interactive magnification of customize
 Multiple zoomed zones are supported for figure class.
 <p align="center">
   <img src="https://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/figure_group.gif" width = "60%">
-</p>
-
-## 👉 Customize parameters using json files
-For example, the border of the zoomed area is changed to red, and the line width is changed to 3:
-<p align="center">
-  <img src="https://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/change_0001.png" width = "60%">
-</p>
-
-Another example, the color of the connecting line is changed to blue, the shape of the end arrow is changed to 'ellipse', and the line width is changed to 5:
-<p align="center">
-  <img src="https://github-files-qiu.oss-cn-beijing.aliyuncs.com/ZoomPlot-MATLAB/change_0002.png" width = "60%">
 </p>
 
 ## Star History
